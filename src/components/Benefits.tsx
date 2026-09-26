@@ -16,7 +16,7 @@ export default function Benefits() {
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <section className="relative w-full py-10 bg-gradient-to-b from-[#DDF5FF]/40 via-white to-white border-y border-[#DDF5FF]">
+    <section className="relative w-full py-12 sm:py-16 bg-gradient-to-b from-[#DDF5FF]/40 via-white to-white border-y border-[#DDF5FF]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Four Brand Benefits */}

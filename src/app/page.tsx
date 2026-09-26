@@ -18,7 +18,7 @@ export default function Home() {
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
 
   return (
-    <main className="min-h-screen flex flex-col bg-white">
+    <main className="min-h-screen flex flex-col bg-white overflow-x-hidden w-full">
       {/* 1. Approved Header with Top Bar and Floating Navigation */}
       <Header
         onOpenFranchiseModal={() => setIsFranchiseModalOpen(true)}

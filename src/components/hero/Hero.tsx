@@ -5,7 +5,6 @@ import Image from "next/image";
 
 export default function Hero() {
   const [headerHeight, setHeaderHeight] = useState<number>(112);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
 
   useEffect(() => {
     const header = document.querySelector("header");
@@ -16,7 +15,6 @@ export default function Hero() {
       if (h > 0) {
         setHeaderHeight((prev) => (prev !== h ? h : prev));
       }
-      setIsMobile(window.innerWidth < 768);
     };
 
     updateHeight();
@@ -40,13 +38,12 @@ export default function Hero() {
   return (
     <section
       id="home"
-      className="hero relative w-full overflow-hidden bg-[#35AFF2] flex items-center justify-center aspect-[16/9] md:aspect-auto"
-      style={{
-        width: "100%",
-        maxWidth: "none",
-        height: isMobile ? "auto" : `calc(100vh - ${headerHeight}px)`,
-        minHeight: isMobile ? "260px" : "540px",
-      }}
+      className="hero relative w-full overflow-hidden bg-[#35AFF2] flex items-center justify-center aspect-[16/9] md:aspect-auto h-auto md:h-[calc(100vh-var(--header-h,112px))] min-h-[220px] sm:min-h-[320px] md:min-h-[540px]"
+      style={
+        {
+          "--header-h": `${headerHeight}px`,
+        } as React.CSSProperties
+      }
     >
       {/* Background Hero Product Image (Wide, safe-area composition with full container & spoon visible) */}
       <div className="relative w-full h-full select-none pointer-events-none">
@@ -62,4 +59,5 @@ export default function Hero() {
     </section>
   );
 }
+
 

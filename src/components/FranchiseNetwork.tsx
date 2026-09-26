@@ -12,7 +12,7 @@ export default function FranchiseNetwork() {
   return (
     <section
       id="franchise-network"
-      className="relative py-20 lg:py-28 bg-gradient-to-b from-[#eaf6ff] via-[#dcf2fe] to-[#eef8fe] overflow-hidden scroll-mt-20"
+      className="relative py-16 sm:py-20 lg:py-24 bg-gradient-to-b from-[#eaf6ff] via-[#dcf2fe] to-[#eef8fe] overflow-hidden scroll-mt-16"
     >
       {/* Anchor for any existing '#find-store' navigation links */}
       <div id="find-store" className="absolute -top-24 left-0" />

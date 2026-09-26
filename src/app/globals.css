@@ -157,3 +157,13 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #43b8f2;
 }
+
+/* Hide scrollbar for Chrome, Safari, Opera, Edge, and Firefox */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+

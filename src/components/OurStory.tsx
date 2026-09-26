@@ -10,7 +10,7 @@ export default function OurStory() {
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <section id="our-story" className="relative py-20 lg:py-28 bg-white overflow-hidden">
+    <section id="our-story" className="relative py-16 sm:py-20 lg:py-24 bg-white overflow-hidden">
       {/* Background Soft Lighting Gradients */}
       <div className="absolute top-1/2 left-0 w-96 h-96 bg-[#DDF5FF]/50 rounded-full blur-3xl pointer-events-none -translate-y-1/2" />
       <div className="absolute bottom-10 right-0 w-80 h-80 bg-[#43B8F2]/10 rounded-full blur-3xl pointer-events-none" />

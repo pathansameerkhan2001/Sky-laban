@@ -13,7 +13,7 @@ export default function Franchise({ onOpenFranchiseModal }: FranchiseProps) {
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <section id="franchise" className="py-20 lg:py-28 bg-white relative overflow-hidden">
+    <section id="franchise" className="py-16 sm:py-20 lg:py-24 bg-white relative overflow-hidden">
       {/* Background Soft Sky Circles */}
       <div className="absolute top-10 left-1/2 -translate-x-1/2 w-full max-w-6xl h-96 bg-gradient-to-r from-[#DDF5FF]/40 via-white to-[#DDF5FF]/40 rounded-full blur-3xl pointer-events-none" />
 

@@ -258,13 +258,6 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
                   Products
                 </a>
                 <a
-                  href="#find-store"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2 text-base font-medium text-[#1c3f68] hover:text-[#0754C9] hover:bg-[#DDF5FF]/40 rounded-xl"
-                >
-                  Find Store
-                </a>
-                <a
                   href="#franchise"
                   onClick={(e) => {
                     setMobileMenuOpen(false);
