@@ -1,0 +1,159 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-sky-deep: #0754c9;
+    --color-sky-royal: #0645b8;
+    --color-sky-blue: #43b8f2;
+    --color-sky-light: #ddf5ff;
+    --color-sky-dark: #063b91;
+    --color-sky-white: #ffffff;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    color-scheme: light;
+  }
+
+  body {
+    margin: 0;
+    background-color: #ffffff;
+    color: #0c2340;
+    font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-outfit), system-ui, sans-serif;
+  }
+}
+
+/* Custom Utilities for Sky Laban Brand Identity */
+.bg-sky-deep { background-color: #0754c9; }
+.bg-sky-royal { background-color: #0645b8; }
+.bg-sky-blue { background-color: #43b8f2; }
+.bg-sky-light { background-color: #ddf5ff; }
+.bg-sky-dark { background-color: #063b91; }
+
+.text-sky-deep { color: #0754c9; }
+.text-sky-royal { color: #0645b8; }
+.text-sky-blue { color: #43b8f2; }
+.text-sky-dark { color: #063b91; }
+
+.border-sky-deep { border-color: #0754c9; }
+.border-sky-blue { border-color: #43b8f2; }
+.border-sky-light { border-color: #ddf5ff; }
+
+/* Sky Atmospheric Gradients */
+.sky-hero-gradient {
+  background: radial-gradient(circle at 75% 45%, #ffffff 0%, #ddf5ff 35%, #43b8f2 70%, #0754c9 100%);
+}
+
+.sky-soft-gradient {
+  background: linear-gradient(180deg, #ddf5ff 0%, #ffffff 100%);
+}
+
+.sky-bar-gradient {
+  background: linear-gradient(90deg, #063b91 0%, #0645b8 50%, #0754c9 100%);
+}
+
+.sky-card-gradient {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(221, 245, 255, 0.4) 100%);
+}
+
+/* Shimmer Light Sweeps */
+@keyframes lightSweep {
+  0% {
+    transform: translateX(-120%) rotate(25deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.35;
+  }
+  60% {
+    opacity: 0.2;
+  }
+  100% {
+    transform: translateX(180%) rotate(25deg);
+    opacity: 0;
+  }
+}
+
+.animate-light-sweep {
+  animation: lightSweep 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Soft Floating Particle Animation */
+@keyframes gentleFloat1 {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(3deg);
+  }
+}
+
+@keyframes gentleFloat2 {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(10px) rotate(-4deg);
+  }
+}
+
+@keyframes slowGlow {
+  0%, 100% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.08);
+  }
+}
+
+.animate-float-slow-1 {
+  animation: gentleFloat1 6s ease-in-out infinite;
+}
+
+.animate-float-slow-2 {
+  animation: gentleFloat2 7.5s ease-in-out infinite;
+}
+
+.animate-slow-glow {
+  animation: slowGlow 5s ease-in-out infinite;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-float-slow-1,
+  .animate-float-slow-2,
+  .animate-slow-glow,
+  .animate-light-sweep {
+    animation: none !important;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f8fc;
+}
+::-webkit-scrollbar-thumb {
+  background: #92d4f8;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #43b8f2;
+}
