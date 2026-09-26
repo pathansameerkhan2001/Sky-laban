@@ -45,7 +45,7 @@ export const TOP_BAR_DATA = {
     href: 'tel:+1234567890',
   },
   socials: [
-    { name: 'Instagram', href: 'https://instagram.com/skylaban', icon: 'Instagram' },
+    { name: 'Instagram', href: 'https://www.instagram.com/sky_laban/?hl=en', icon: 'Instagram' },
     { name: 'Facebook', href: 'https://facebook.com/skylaban', icon: 'Facebook' },
     { name: 'YouTube', href: 'https://youtube.com/@skylaban', icon: 'Youtube' },
   ],
@@ -309,7 +309,7 @@ export const FRANCHISE_LOCATIONS_DATA: FranchiseLocation[] = [
     name: 'Ragavendra Colony',
     branch: 'Sky Laban (Ragavendra Colony Branch)',
     state: 'Telangana',
-    mapsUrl: 'https://maps.app.goo.gl/KE4uTSoGsLKTk9y59?g_st=ic',
+    mapsUrl: 'https://maps.app.goo.gl/KE4uTSoGsLKtk9y59?g_st=ic',
     image: '/images/store_ragavendra.jpg',
   },
   {
@@ -344,7 +344,7 @@ export const FOOTER_DATA = {
     hq: 'Sky Laban International Ltd., Global Dairy Boulevard',
   },
   socials: [
-    { name: 'Instagram', href: 'https://instagram.com/skylaban', icon: 'Instagram' },
+    { name: 'Instagram', href: 'https://www.instagram.com/sky_laban/?hl=en', icon: 'Instagram' },
     { name: 'Facebook', href: 'https://facebook.com/skylaban', icon: 'Facebook' },
     { name: 'YouTube', href: 'https://youtube.com/@skylaban', icon: 'Youtube' },
   ],

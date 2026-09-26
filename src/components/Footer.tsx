@@ -42,7 +42,7 @@ export default function Footer({ onOpenConnectModal, onOpenFranchiseModal }: Foo
             {/* Social Icons */}
             <div className="flex items-center space-x-3 pt-2">
               <a
-                href="https://instagram.com"
+                href={FOOTER_DATA.socials[0].href}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"

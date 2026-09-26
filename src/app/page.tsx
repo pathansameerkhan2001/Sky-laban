@@ -3,11 +3,12 @@
 import React, { useState } from "react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
+import Products from "@/components/Products";
+import FranchiseNetwork from "@/components/FranchiseNetwork";
+import InstagramReels from "@/components/InstagramReels";
 import Benefits from "@/components/Benefits";
 import OurStory from "@/components/OurStory";
-import Products from "@/components/Products";
 import Franchise from "@/components/Franchise";
-import FranchiseNetwork from "@/components/FranchiseNetwork";
 import Footer from "@/components/Footer";
 import FranchiseModal from "@/components/FranchiseModal";
 import LetConnectModal from "@/components/LetConnectModal";
@@ -18,31 +19,34 @@ export default function Home() {
 
   return (
     <main className="min-h-screen flex flex-col bg-white">
-      {/* Header with Top Bar and Floating Navigation */}
+      {/* 1. Approved Header with Top Bar and Floating Navigation */}
       <Header
         onOpenFranchiseModal={() => setIsFranchiseModalOpen(true)}
         onOpenConnectModal={() => setIsConnectModalOpen(true)}
       />
 
-      {/* Hero Section */}
+      {/* 2. Hero Section: Pure Product Visual Showcase */}
       <Hero />
 
-      {/* Franchise Network Section (Andhra Pradesh & Telangana) */}
-      <FranchiseNetwork />
-
-      {/* Brand Benefits Strip */}
-      <Benefits />
-
-      {/* Our Story Section */}
-      <OurStory />
-
-      {/* Products Showcase */}
+      {/* 3. Products Showcase Section */}
       <Products />
 
-      {/* Franchise Business Section */}
+      {/* 4. Franchise Network Section (Andhra Pradesh & Telangana) */}
+      <FranchiseNetwork />
+
+      {/* 5. Instagram Reels Section (Trending Reel-Train Carousel) */}
+      <InstagramReels />
+
+      {/* 6. Brand Benefits & Values */}
+      <Benefits />
+
+      {/* 7. Our Story Narrative Section */}
+      <OurStory />
+
+      {/* 8. Franchise Partner / Business Opportunity */}
       <Franchise onOpenFranchiseModal={() => setIsFranchiseModalOpen(true)} />
 
-      {/* Footer */}
+      {/* 9. Footer */}
       <Footer
         onOpenFranchiseModal={() => setIsFranchiseModalOpen(true)}
         onOpenConnectModal={() => setIsConnectModalOpen(true)}

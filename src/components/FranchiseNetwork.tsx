@@ -46,18 +46,13 @@ export default function FranchiseNetwork() {
               Growing Together
               <br />
               <span className="text-[#0754C9] font-serif italic">
-                in Andhra Pradesh
-              </span>
-              <br />
-              <span className="text-[#0754C9] font-serif italic">
-                &amp; Telangana
+                Across Andhra Pradesh &amp; Telangana
               </span>
             </h2>
 
             {/* Supporting Text */}
             <p className="text-base sm:text-lg text-slate-700 leading-relaxed mb-8 max-w-md">
-              From our first outlet to a growing family, Sky Laban is now available
-              at multiple locations across Andhra Pradesh &amp; Telangana.
+              Sky Laban is growing through multiple locations.
             </p>
 
             {/* 5 Franchises Counter Card (Matching Reference Badge) */}

@@ -57,7 +57,7 @@ export default function AnnouncementBar() {
           {/* Right: Social Media Icons */}
           <div className="flex items-center space-x-2 sm:space-x-2.5">
             <a
-              href="https://instagram.com"
+              href={TOP_BAR_DATA.socials[0].href}
               target="_blank"
               rel="noopener noreferrer"
               className="text-white/80 hover:text-[#43B8F2] hover:scale-110 transition-all p-1"
