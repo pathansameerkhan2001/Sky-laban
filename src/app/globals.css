@@ -127,14 +127,8 @@
   animation: slowGlow 5s ease-in-out infinite;
 }
 
-/* Reduced Motion Support */
+/* Decorative Background Floating Motions */
 @media (prefers-reduced-motion: reduce) {
-  *, ::before, ::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
   .animate-float-slow-1,
   .animate-float-slow-2,
   .animate-slow-glow,
@@ -166,4 +160,33 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Playful Brand Script Typography */
+.font-script {
+  font-family: 'Caveat', cursive, sans-serif;
+}
+
+/* Continuous Infinite Headline Ticker */
+@keyframes tickerSlide {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-ticker-infinite {
+  display: flex;
+  width: max-content;
+  animation: tickerSlide 26s linear infinite;
+  will-change: transform;
+}
+
+@media (hover: hover) {
+  .animate-ticker-infinite:hover {
+    animation-play-state: paused;
+  }
+}
+
 

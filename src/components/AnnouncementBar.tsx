@@ -8,7 +8,7 @@ import { InstagramIcon, FacebookIcon, YoutubeIcon } from "./SocialIcons";
 export default function AnnouncementBar() {
   return (
     <div className="w-full bg-[#063b91] text-white text-[11px] md:text-xs font-medium tracking-wide border-b border-white/10 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-10 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-10 flex items-center justify-between">
         
         {/* Left: Quality Badges */}
         <div className="flex items-center space-x-3 sm:space-x-4">
