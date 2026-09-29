@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { Sparkles, ArrowRight, ChevronLeft, ChevronRight, Layers } from "lucide-react";
+import { getMediaUrl } from "@/lib/media";
 
 export interface CategoryData {
   id: string;
@@ -306,7 +307,7 @@ export default function Categories({ onSelectCategory }: CategoriesProps) {
                 {/* Real High-Quality Dessert Image */}
                 <div className="relative w-full h-full flex items-center justify-center">
                   <Image
-                    src={cat.photoImage || `/products/chocolate-almond-bowl.jpg`}
+                    src={getMediaUrl(cat.photoImage || "/products/chocolate-almond-bowl.jpg")}
                     alt={`Sky Laban ${cat.name}`}
                     fill
                     sizes="(max-width: 640px) 210px, 270px"
@@ -319,7 +320,7 @@ export default function Categories({ onSelectCategory }: CategoriesProps) {
                 <div className="absolute bottom-2 right-2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 backdrop-blur-xs p-1 shadow-md border border-[#DDF5FF] flex items-center justify-center group-hover:scale-110 transition-transform">
                   <div className="relative w-full h-full">
                     <Image
-                      src={cat.image || `/images/categories/${cat.id}-cloud@2x.png`}
+                      src={getMediaUrl(cat.image || `/images/categories/${cat.id}-cloud@2x.png`)}
                       alt=""
                       aria-hidden="true"
                       fill

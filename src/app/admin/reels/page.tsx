@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { ReelItem } from "@/lib/db";
 import { InstagramIcon } from "@/components/SocialIcons";
+import { getMediaUrl } from "@/lib/media";
 
 export default function AdminReelsPage() {
   const [reels, setReels] = useState<ReelItem[]>([]);
@@ -302,7 +303,7 @@ export default function AdminReelsPage() {
           >
             {/* Thumbnail Image */}
             <Image
-              src={reel.image || "/images/reel_1.jpg"}
+              src={getMediaUrl(reel.image || "/images/reel_1.jpg")}
               alt={reel.title || `Reel ${reel.number}`}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -517,7 +518,7 @@ export default function AdminReelsPage() {
                   <div className="relative aspect-[9/16] w-28 mx-auto sm:mx-0 rounded-2xl overflow-hidden bg-slate-900 border-2 border-[#43B8F2] shadow-md shrink-0">
                     {previewUrl ? (
                       <Image
-                        src={previewUrl}
+                        src={getMediaUrl(previewUrl)}
                         alt="Preview"
                         fill
                         className="object-cover"

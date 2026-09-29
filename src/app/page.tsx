@@ -4,8 +4,8 @@ import React, { useState } from "react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import HeadlineTicker from "@/components/HeadlineTicker";
-import Categories from "@/components/Categories";
 import Products from "@/components/Products";
+import Drinks from "@/components/Drinks";
 import OurStory from "@/components/OurStory";
 import Founders from "@/components/Founders";
 import InstagramReels from "@/components/InstagramReels";
@@ -33,11 +33,11 @@ export default function Home() {
       {/* 3. Animated Brand Headline / Marquee */}
       <HeadlineTicker />
 
-      {/* 4. Explore Our Categories */}
-      <Categories onSelectCategory={(catName) => setSelectedCategory(catName)} />
+      {/* 4. Redesigned Sky Laban Product Discovery Section */}
+      <Products selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
 
-      {/* 5. Products Section */}
-      <Products selectedCategory={selectedCategory} />
+      {/* 5. Chilled Drinks & Artisanal Elixirs Section */}
+      <Drinks />
 
       {/* 6. Our Story – Sky Laban */}
       <OurStory />

@@ -19,6 +19,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { HeroSlideItem } from "@/lib/db";
+import { getMediaUrl } from "@/lib/media";
 
 export default function AdminHeroPage() {
   const [slides, setSlides] = useState<HeroSlideItem[]>([]);
@@ -281,7 +282,7 @@ export default function AdminHeroPage() {
                   {/* Slide Image Preview */}
                   <div className="relative w-28 h-20 sm:w-36 sm:h-24 rounded-2xl overflow-hidden border border-[#DDF5FF] bg-slate-900 shrink-0 shadow-xs">
                     <Image
-                      src={slide.image}
+                      src={getMediaUrl(slide.image)}
                       alt={slide.title}
                       fill
                       className="object-cover"
@@ -430,7 +431,7 @@ export default function AdminHeroPage() {
                   <div className="relative w-32 h-20 rounded-2xl overflow-hidden border-2 border-[#DDF5FF] bg-slate-900 shrink-0 shadow-sm">
                     {previewUrl ? (
                       <Image
-                        src={previewUrl}
+                        src={getMediaUrl(previewUrl)}
                         alt="Slide Preview"
                         fill
                         className="object-cover"

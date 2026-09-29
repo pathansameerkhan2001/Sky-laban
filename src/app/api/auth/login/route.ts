@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAdminCredentials } from "@/lib/db";
-import { setAdminSessionCookie } from "@/lib/auth";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import { createToken, setAdminSessionCookie } from "@/lib/auth";
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/lib/supabase/config";
+
+const ALLOWED_ADMIN_ROLES = ["admin", "super admin", "super_admin", "editor"];
+const KNOWN_ADMIN_EMAILS = ["adnix.in@gmail.com"];
+const KNOWN_ADMIN_UUIDS = ["53177535-cbd5-4f02-b7c5-cec9acb4c6f6"];
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,97 +15,177 @@ export async function POST(req: NextRequest) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: "Email and password are required" },
+        { error: "Email and password are required." },
         { status: 400 }
       );
     }
 
-    // 1. Try Supabase Auth if configured
-    let authenticatedUser: { id: string; email: string; name: string; role: string } | null = null;
+    const cookieStore = await cookies();
+    const pendingCookies: Array<{ name: string; value: string; options: any }> = [];
 
-    try {
-      const { getSupabaseClient, isSupabaseConfigured } = await import("@/lib/supabase");
-      if (isSupabaseConfigured()) {
-        const supabase = getSupabaseClient();
-        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (!authError && authData.user) {
-          // Check admin_users table for authorization
-          const { data: adminRecord } = await supabase
-            .from("admin_users")
-            .select("display_name, role")
-            .eq("user_id", authData.user.id)
-            .maybeSingle();
-
-          if (adminRecord) {
-            authenticatedUser = {
-              id: authData.user.id,
-              email: authData.user.email || email,
-              name: adminRecord.display_name || "Admin",
-              role: adminRecord.role || "super_admin",
-            };
-          } else {
-            // Also check by email in admin_users if user_id not yet matched
-            const { data: adminByEmail } = await supabase
-              .from("admin_users")
-              .select("display_name, role")
-              .eq("email", email.toLowerCase())
-              .maybeSingle();
-
-            if (adminByEmail) {
-              authenticatedUser = {
-                id: authData.user.id,
-                email: authData.user.email || email,
-                name: adminByEmail.display_name || "Admin",
-                role: adminByEmail.role || "super_admin",
-              };
+    const supabase = createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            try {
+              cookieStore.set(name, value, options);
+            } catch {
+              // Ignore if in restricted context
             }
-          }
-        }
-      }
-    } catch (supabaseErr) {
-      console.warn("Supabase auth check:", supabaseErr);
-    }
+            pendingCookies.push({ name, value, options });
+          });
+        },
+      },
+    });
 
-    // 2. Fallback to authorized admin database credentials
-    if (!authenticatedUser) {
-      const localUser = verifyAdminCredentials(email, password);
-      if (localUser) {
-        authenticatedUser = {
-          id: localUser.id,
-          email: localUser.email,
-          name: localUser.name,
-          role: localUser.role,
-        };
-      }
-    }
+    // 1. Authenticate with Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
 
-    if (!authenticatedUser) {
+    if (authError || !authData.user) {
+      const errCode = (authError as any)?.code || (authError as any)?.status;
+      const errMsg = authError?.message || "Invalid email or password.";
+      console.warn(`[Supabase Auth] Login failed for ${email.trim()}:`, errMsg);
+
+      let userFriendlyMessage = errMsg;
+      if (errMsg.toLowerCase().includes("invalid login credentials")) {
+        userFriendlyMessage =
+          "Invalid login credentials. Please verify your password. If you recently created this account, ensure email confirmation is approved in the Supabase Dashboard.";
+      }
+
       return NextResponse.json(
-        { error: "Invalid email or password or unauthorized admin account." },
+        { error: userFriendlyMessage },
         { status: 401 }
       );
     }
 
-    await setAdminSessionCookie({
-      userId: authenticatedUser.id,
-      email: authenticatedUser.email,
-      name: authenticatedUser.name,
-      role: authenticatedUser.role,
+    const user = authData.user;
+
+    // 2. Strict Admin Authorization Check using public.admin_users
+    let isAuthorized = false;
+    let role = "admin";
+    let displayName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Admin";
+
+    // A. Query database public.admin_users table by user.id (UUID)
+    try {
+      const { data: byUserId } = await supabase
+        .from("admin_users")
+        .select("id, user_id, display_name, role")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (byUserId && ALLOWED_ADMIN_ROLES.includes(String(byUserId.role).toLowerCase())) {
+        isAuthorized = true;
+        role = byUserId.role || role;
+        displayName = byUserId.display_name || displayName;
+      } else {
+        // Also check if id column in admin_users holds the user's UUID
+        const { data: byId } = await supabase
+          .from("admin_users")
+          .select("id, user_id, display_name, role")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (byId && ALLOWED_ADMIN_ROLES.includes(String(byId.role).toLowerCase())) {
+          isAuthorized = true;
+          role = byId.role || role;
+          displayName = byId.display_name || displayName;
+        }
+      }
+    } catch (err) {
+      console.warn("[Auth] admin_users query notice:", err);
+    }
+
+    // B. Check user metadata / app_metadata
+    if (!isAuthorized) {
+      const appRole = String(user.app_metadata?.role || user.user_metadata?.role || "").toLowerCase();
+      if (ALLOWED_ADMIN_ROLES.includes(appRole)) {
+        isAuthorized = true;
+        role = user.app_metadata?.role || user.user_metadata?.role || "admin";
+      }
+
+      // C. Check known admin email or UUID allowlist
+      const envEmails = (process.env.ADMIN_ALLOWED_EMAILS || "")
+        .toLowerCase()
+        .split(",")
+        .map((e) => e.trim())
+        .filter(Boolean);
+
+      const allAllowedEmails = [...KNOWN_ADMIN_EMAILS, ...envEmails];
+
+      if (
+        (user.email && allAllowedEmails.includes(user.email.toLowerCase())) ||
+        KNOWN_ADMIN_UUIDS.includes(user.id)
+      ) {
+        isAuthorized = true;
+        role = "super_admin";
+      }
+    }
+
+    // If account authenticated in Supabase but lacks admin authorization, reject
+    if (!isAuthorized) {
+      await supabase.auth.signOut();
+      return NextResponse.json(
+        {
+          error:
+            "Access restricted: User account is authenticated in Supabase, but your UUID is not registered with an administrator role in public.admin_users.",
+        },
+        { status: 403 }
+      );
+    }
+
+    // Construct JSON response
+    const response = NextResponse.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: displayName,
+        role,
+      },
+    });
+
+    // Attach pending Supabase SSR cookies directly to response headers
+    for (const c of pendingCookies) {
+      response.cookies.set(c.name, c.value, c.options);
+    }
+
+    // Set signed admin session cookie directly on response
+    const sessionToken = createToken({
+      userId: user.id,
+      email: user.email || email,
+      name: displayName,
+      role,
       expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 7, // 7 days
     });
 
-    return NextResponse.json({
-      success: true,
-      user: authenticatedUser,
+    response.cookies.set("skylaban_admin_session", sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
     });
+
+    // Also update server cookie store
+    await setAdminSessionCookie({
+      userId: user.id,
+      email: user.email || email,
+      name: displayName,
+      role,
+      expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 7,
+    });
+
+    return response;
   } catch (error) {
     console.error("Login API error:", error);
     return NextResponse.json(
-      { error: "An unexpected error occurred during login." },
+      { error: "An unexpected error occurred during authentication." },
       { status: 500 }
     );
   }

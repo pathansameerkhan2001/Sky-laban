@@ -78,6 +78,36 @@ export async function GET() {
           isActive: r.is_published,
         }));
       }
+
+      // 4. Products
+      const { data: supaProducts, error: prodErr } = await supabase
+        .from("products")
+        .select("*")
+        .eq("is_published", true)
+        .order("display_order", { ascending: true });
+
+      if (!prodErr && Array.isArray(supaProducts) && supaProducts.length > 0) {
+        const localList = getDbProducts();
+        products = supaProducts.map((p: any) => {
+          const match = localList.find((l) => l.id === p.id);
+          return {
+            id: p.id,
+            name: p.name,
+            tagline: p.tagline || match?.tagline || p.description || "",
+            category: p.category || match?.category || "Salankatia",
+            badge: p.badge || match?.badge,
+            image: p.image_url || match?.image || "/products/salankatia-nutella-lotus.jpg",
+            description: p.description || match?.description || "",
+            tastingNotes: match?.tastingNotes || ["Handcrafted Cream", "Velvet Layers"],
+            servingSuggestion: match?.servingSuggestion,
+            pairingNotes: match?.pairingNotes,
+            price: p.price || match?.price,
+            isHero: match?.isHero ?? true,
+            isAvailable: p.is_published,
+            order: p.display_order || 1,
+          };
+        });
+      }
     } catch (err) {
       console.warn("Notice: Using local store for public data fallback:", err);
     }

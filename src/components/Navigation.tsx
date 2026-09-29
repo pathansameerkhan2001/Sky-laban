@@ -4,8 +4,9 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Store, Send, Menu, X, Sparkles, Phone } from "lucide-react";
+import { ChevronDown, Store, Send, Menu, X, Sparkles, Phone, ShieldCheck } from "lucide-react";
 import { NAVIGATION_DATA } from "@/data/brandData";
+import { getMediaUrl } from "@/lib/media";
 
 interface NavigationProps {
   onOpenConnectModal?: () => void;
@@ -35,7 +36,7 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
               >
                 <div className="relative w-36 lg:w-40 h-11 lg:h-13">
                   <Image
-                    src="/images/sky_laban_logo_transparent.png"
+                    src={getMediaUrl("/images/sky_laban_logo_transparent.png")}
                     alt="Sky Laban Logo"
                     fill
                     sizes="160px"
@@ -164,6 +165,22 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
                 </AnimatePresence>
               </div>
 
+              {/* Drinks */}
+              <div className="relative">
+                <a
+                  href="#drinks"
+                  onClick={() => setActiveLink("Drinks")}
+                  className={`relative font-semibold text-sm lg:text-[15px] transition-colors py-1 block ${
+                    activeLink === "Drinks" ? "text-[#0754C9]" : "text-[#1c3f68] hover:text-[#0754C9]"
+                  }`}
+                >
+                  Drinks
+                  {activeLink === "Drinks" && (
+                    <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-[#0754C9] rounded-full mx-auto w-5" />
+                  )}
+                </a>
+              </div>
+
               {/* Founders */}
               <div className="relative">
                 <a
@@ -229,14 +246,28 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
                 <Send className="w-4 h-4 text-white" />
                 <span>Let Connect</span>
               </button>
+
+              {/* Admin Login Icon Button */}
+              <Link
+                href="/admin/login"
+                className="group relative p-2 lg:p-2.5 rounded-full bg-white hover:bg-[#0754C9] text-[#0754C9] hover:text-white border border-[#DDF5FF] hover:border-[#0754C9] shadow-xs hover:shadow-md transition-all duration-200 flex items-center justify-center cursor-pointer"
+                title="Admin Login"
+                aria-label="Admin Login"
+              >
+                <ShieldCheck className="w-4 h-4 stroke-[2.2] transition-transform group-hover:scale-110" />
+                {/* Tooltip */}
+                <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#063B91] px-2 py-0.5 text-[10px] font-bold text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100 z-50">
+                  Admin Login
+                </span>
+              </Link>
             </div>
           </div>
 
           {/* ================= MOBILE VIEW (flex md:hidden) ================= */}
-          {/* Strictly 3-column layout: Left menu icon, Center logo, Right action icon */}
+          {/* Strictly balanced 3-column layout: Left menu icon, Center logo, Right action icons */}
           <div className="flex md:hidden items-center justify-between w-full h-11">
             {/* Left: Mobile Menu Icon */}
-            <div className="w-10 flex justify-start items-center shrink-0">
+            <div className="w-18 flex justify-start items-center shrink-0">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="p-1.5 rounded-xl text-[#0754C9] hover:bg-white/80 active:bg-white focus:outline-none transition-colors"
@@ -255,7 +286,7 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
                 aria-label="Sky Laban Mobile Home"
               >
                 <Image
-                  src="/images/sky_laban_logo_transparent.png"
+                  src={getMediaUrl("/images/sky_laban_logo_transparent.png")}
                   alt="Sky Laban Logo"
                   fill
                   sizes="128px"
@@ -265,8 +296,16 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
               </a>
             </div>
 
-            {/* Right: Action Icon (Let Connect / Contact) */}
-            <div className="w-10 flex justify-end items-center shrink-0">
+            {/* Right: Action Icons (Admin Login + Let Connect) */}
+            <div className="w-18 flex items-center justify-end gap-1.5 shrink-0">
+              <Link
+                href="/admin/login"
+                className="w-8 h-8 rounded-full bg-white border border-[#DDF5FF] text-[#0754C9] hover:bg-[#0754C9] hover:text-white flex items-center justify-center shadow-xs active:scale-95 transition-all"
+                aria-label="Admin Login"
+                title="Admin Login"
+              >
+                <ShieldCheck className="w-4 h-4 stroke-[2.2]" />
+              </Link>
               <button
                 onClick={() => {
                   if (onOpenConnectModal) {
@@ -276,11 +315,11 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
                     if (el) el.scrollIntoView({ behavior: "smooth" });
                   }
                 }}
-                className="w-9 h-9 rounded-full bg-[#0754C9] text-white flex items-center justify-center shadow-sm hover:bg-[#0645B8] active:scale-95 transition-all"
+                className="w-8 h-8 rounded-full bg-[#0754C9] text-white flex items-center justify-center shadow-sm hover:bg-[#0645B8] active:scale-95 transition-all"
                 aria-label="Contact Sky Laban"
                 title="Let Connect"
               >
-                <Send className="w-4 h-4 text-white translate-x-0.2" />
+                <Send className="w-3.5 h-3.5 text-white translate-x-0.2" />
               </button>
             </div>
           </div>
@@ -318,6 +357,13 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
                   className="px-3.5 py-2.5 text-sm font-semibold text-slate-700 hover:text-[#0754C9] hover:bg-[#EBF5FE]/40 rounded-xl transition-colors"
                 >
                   Products &amp; Desserts
+                </a>
+                <a
+                  href="#drinks"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3.5 py-2.5 text-sm font-semibold text-slate-700 hover:text-[#0754C9] hover:bg-[#EBF5FE]/40 rounded-xl transition-colors"
+                >
+                  Drinks &amp; Elixirs
                 </a>
                 <a
                   href="#our-story"
@@ -370,6 +416,15 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
                     <Send className="w-4 h-4" />
                     <span>Let Connect</span>
                   </button>
+
+                  <Link
+                    href="/admin/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-[#0754C9]" />
+                    <span>Admin Login</span>
+                  </Link>
                 </div>
               </div>
             </motion.div>

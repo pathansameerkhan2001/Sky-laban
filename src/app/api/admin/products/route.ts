@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { getDbProducts, saveDbProduct, deleteDbProduct } from "@/lib/db";
+import { syncProductToSupabaseTable, deleteProductFromSupabaseTable } from "@/lib/supabase";
 import { ProductItem } from "@/data/brandData";
 
 export async function GET() {
@@ -24,6 +25,10 @@ export async function POST(req: NextRequest) {
     }
 
     const saved = saveDbProduct(body);
+    // Background sync to Supabase table
+    syncProductToSupabaseTable(saved).catch((err) =>
+      console.warn("Supabase product sync warning:", err)
+    );
     return NextResponse.json({ success: true, product: saved });
   } catch (error) {
     return NextResponse.json({ error: "Failed to save product" }, { status: 500 });
@@ -43,6 +48,10 @@ export async function PUT(req: NextRequest) {
     }
 
     const updated = saveDbProduct(body);
+    // Background sync to Supabase table
+    syncProductToSupabaseTable(updated).catch((err) =>
+      console.warn("Supabase product sync warning:", err)
+    );
     return NextResponse.json({ success: true, product: updated });
   } catch (error) {
     return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
@@ -67,8 +76,13 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
+    deleteProductFromSupabaseTable(id).catch((err) =>
+      console.warn("Supabase product delete warning:", err)
+    );
+
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: "Failed to delete product" }, { status: 500 });
   }
 }
+

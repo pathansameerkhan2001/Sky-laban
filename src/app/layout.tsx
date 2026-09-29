@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Outfit } from "next/font/google";
+import { Inter, Outfit, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -15,6 +15,13 @@ const outfit = Outfit({
   weight: ["400", "500", "600", "700", "800"],
 });
 
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+  display: "swap",
+  style: ["normal", "italic"],
+});
+
 export const viewport: Viewport = {
   themeColor: "#0645B8",
   width: "device-width",
@@ -23,7 +30,11 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://skylaban.com"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_PRODUCTION_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    "https://sky-laban-phi.vercel.app"
+  ),
   title: "Sky Laban | Premium Desserts",
   description:
     "Discover Sky Laban's creamy, delicious desserts crafted with premium ingredients and unforgettable flavors.",
@@ -84,7 +95,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${outfit.variable} scroll-smooth`}>
+    <html lang="en" className={`${inter.variable} ${outfit.variable} ${playfair.variable} scroll-smooth`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

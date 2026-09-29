@@ -1,25 +1,35 @@
 import { NextResponse } from "next/server";
-import { clearAdminSessionCookie, getAdminSession } from "@/lib/auth";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import { clearAdminSessionCookie } from "@/lib/auth";
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/lib/supabase/config";
 
 export async function POST() {
   try {
-    const { getSupabaseClient, isSupabaseConfigured } = await import("@/lib/supabase");
-    if (isSupabaseConfigured()) {
-      const supabase = getSupabaseClient();
-      await supabase.auth.signOut();
-    }
+    const cookieStore = await cookies();
+
+    const supabase = createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // Handled
+          }
+        },
+      },
+    });
+
+    await supabase.auth.signOut();
   } catch (err) {
-    console.warn("Supabase signOut error:", err);
+    console.warn("Supabase signOut notice:", err);
   }
 
   await clearAdminSessionCookie();
   return NextResponse.json({ success: true, message: "Logged out successfully" });
-}
-
-export async function GET() {
-  const session = await getAdminSession();
-  if (!session) {
-    return NextResponse.json({ authenticated: false }, { status: 401 });
-  }
-  return NextResponse.json({ authenticated: true, user: session });
 }

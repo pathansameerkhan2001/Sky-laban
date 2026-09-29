@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Sparkles, Utensils, CheckCircle2, Info } from "lucide-react";
 import { ProductItem } from "@/data/brandData";
+import { getMediaUrl } from "@/lib/media";
 
 interface ProductDetailModalProps {
   product: ProductItem | null;
@@ -60,7 +61,7 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
           {/* Product Image Area */}
           <div className="relative aspect-[16/10] w-full bg-gradient-to-b from-[#DDF5FF] to-white flex items-center justify-center p-6">
             <Image
-              src={product.image}
+              src={getMediaUrl(product.image)}
               alt={product.name}
               fill
               sizes="(max-width: 768px) 100vw, 650px"

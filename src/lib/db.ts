@@ -1,7 +1,8 @@
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
-import { PRODUCTS_DATA, ProductItem, PRODUCT_CATEGORIES } from "@/data/brandData";
+import { PRODUCTS_DATA, type ProductItem, PRODUCT_CATEGORIES } from "@/data/brandData";
+export type { ProductItem } from "@/data/brandData";
 
 // Data interfaces
 export interface CategoryItem {
@@ -139,6 +140,9 @@ export interface SystemSettings {
   metaDescription: string;
   enableOrdering: boolean;
   maintenanceMode: boolean;
+  contactPhone?: string;
+  contactEmail?: string;
+  openingHours?: string;
 }
 
 export interface AppDatabase {
@@ -471,7 +475,7 @@ function getInitialData(): AppDatabase {
       id: "founder-akram",
       name: "B. Akram Ali Khan",
       title: "Founder & Chief Visionary",
-      image: "/images/Founder1(1).png",
+      image: "/images/founders/akram-ali-khan-hd.jpg",
       description:
         "B. Akram Ali Khan is the Founder and Chief Visionary of Sky Laban, helping shape the brand’s vision and its journey in bringing distinctive dessert experiences to more communities. With a deep passion for premium desserts and quality craftsmanship, he guides Sky Laban’s growth from our first outlet in Shaikpet to 15 outlets across Hyderabad and beyond.",
       order: 1,
@@ -598,6 +602,9 @@ function getInitialData(): AppDatabase {
     metaDescription: "Indulge in authentic Salankatia, Koushiri, Hiba Cakes and artisanal dairy desserts crafted with Bronte pistachios and Belgian chocolate.",
     enableOrdering: true,
     maintenanceMode: false,
+    contactPhone: "+91 98765 43210",
+    contactEmail: "info@skylaban.com",
+    openingHours: "Mon - Sun: 11:00 AM - 12:00 AM",
   };
 
   return {
@@ -705,8 +712,9 @@ export function getDbCategories(): CategoryItem[] {
       { id: "hiba-cake", name: "Hiba Cake", image: "/images/categories/hiba-cake-cloud@2x.png", description: "Cloud-soft sponge cake soaked in milk cream and caramel.", order: 6, isActive: true },
       { id: "cakes", name: "Cakes", image: "/images/categories/cakes-cloud@2x.png", description: "Fazea Chocola and handcrafted artisanal celebration cakes.", order: 7, isActive: true },
       { id: "kunafa-pastry", name: "Kunafa & Pastry", image: "/images/categories/kunafa-pastry-cloud@2x.png", description: "Crisp golden phyllo strands layered with warm cheese and sweet syrup.", order: 8, isActive: true },
-      { id: "traditional-desserts", name: "Traditional Desserts", image: "/images/categories/traditional-desserts-cloud@2x.png", description: "Time-honored Middle Eastern puddings, Muhallabia, and dairy pots.", order: 9, isActive: true },
-      { id: "special", name: "Special", image: "/images/categories/special-cloud@2x.png", description: "Signature chocolate spheres, celebratory gift sets, and limited batches.", order: 10, isActive: true },
+      { id: "kabsa", name: "Kabsa", image: "/images/categories/kabsa-cloud@2x.png", description: "Royal sweet dessert tray with saffron & nuts.", order: 9, isActive: true },
+      { id: "traditional-desserts", name: "Traditional Desserts", image: "/images/categories/traditional-desserts-cloud@2x.png", description: "Time-honored Middle Eastern puddings, Muhallabia, and dairy pots.", order: 10, isActive: true },
+      { id: "special", name: "Special", image: "/images/categories/special-cloud@2x.png", description: "Signature chocolate spheres, celebratory gift sets, and limited batches.", order: 11, isActive: true },
     ];
     writeDb(db);
   }

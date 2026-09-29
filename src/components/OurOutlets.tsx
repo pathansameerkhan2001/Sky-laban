@@ -16,6 +16,7 @@ import {
   Clock,
   Sparkles,
 } from "lucide-react";
+import { getMediaUrl } from "@/lib/media";
 
 interface OutletItem {
   id: string;
@@ -491,7 +492,7 @@ export default function OurOutlets() {
             <div className="hidden lg:flex items-center gap-4 mt-8 pt-6 border-t border-[#0754C9]/10 w-full">
               <div className="relative w-20 h-14 shrink-0 rounded-xl overflow-hidden drop-shadow-sm">
                 <Image
-                  src="/images/outlets_bowl_clean.png"
+                  src={getMediaUrl("/images/outlets_bowl_clean.png")}
                   alt="Sky Laban Freshly Prepared Signature Dessert"
                   fill
                   sizes="80px"
@@ -522,7 +523,7 @@ export default function OurOutlets() {
               {/* Map Image Container with Exact 575/588 Aspect Ratio */}
               <div className="relative w-full aspect-[575/588] rounded-2xl overflow-hidden bg-white/40">
                 <Image
-                  src="/images/south_india_outlets_map@2x.png"
+                  src={getMediaUrl("/images/south_india_outlets_map@2x.png")}
                   alt="Sky Laban South India Outlets Map showing 12 Existing Outlets and 15 Upcoming Locations"
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 680px"

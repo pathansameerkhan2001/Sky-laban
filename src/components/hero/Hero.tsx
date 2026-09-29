@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { getMediaUrl } from "@/lib/media";
 
 interface HeroSlide {
   id: string;
@@ -132,7 +133,7 @@ export default function Hero() {
               {/* DESKTOP HERO VIEW (Hidden on Mobile) */}
               <div className="hidden md:block relative w-full h-full">
                 <Image
-                  src={slide.desktopImage}
+                  src={getMediaUrl(slide.desktopImage)}
                   alt={slide.alt}
                   fill
                   priority={idx === 0}
@@ -145,7 +146,7 @@ export default function Hero() {
               {/* MOBILE HERO VIEW (Hidden on Desktop) */}
               <div className="block md:hidden relative w-full h-full">
                 <Image
-                  src={slide.mobileImage}
+                  src={getMediaUrl(slide.mobileImage)}
                   alt={slide.alt}
                   fill
                   priority={idx === 0}

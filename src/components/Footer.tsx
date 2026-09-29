@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Phone, Mail, MapPin, Heart, Sparkles } from "lucide-react";
 import { FOOTER_DATA } from "@/data/brandData";
 import { InstagramIcon, FacebookIcon, YoutubeIcon } from "./SocialIcons";
+import { getMediaUrl } from "@/lib/media";
 
 interface FooterProps {
   onOpenConnectModal?: () => void;
@@ -27,7 +28,7 @@ export default function Footer({ onOpenConnectModal, onOpenFranchiseModal }: Foo
             {/* Exact Sky Laban Logo */}
             <a href="#home" className="inline-block relative w-36 sm:w-44 h-14">
               <Image
-                src="/images/sky_laban_logo_transparent.png"
+                src={getMediaUrl("/images/sky_laban_logo_transparent.png")}
                 alt="Sky Laban Brand Logo"
                 fill
                 sizes="(max-width: 640px) 144px, 176px"

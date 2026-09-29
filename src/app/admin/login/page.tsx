@@ -2,8 +2,10 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Lock, Mail, Eye, EyeOff, ShieldCheck, ArrowRight, AlertCircle } from "lucide-react";
+import { getMediaUrl } from "@/lib/media";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -35,9 +37,8 @@ export default function AdminLoginPage() {
         throw new Error(data.error || "Authentication failed. Access restricted to authorized admins.");
       }
 
-      // Successful login -> Redirect to /admin
-      router.push("/admin");
-      router.refresh();
+      // Successful login -> Full redirect to /admin to ensure fresh cookie evaluation
+      window.location.href = "/admin";
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -61,7 +62,7 @@ export default function AdminLoginPage() {
         <div className="flex flex-col items-center text-center mb-8">
           <div className="relative w-44 h-14 mb-3">
             <Image
-              src="/images/sky_laban_logo_transparent.png"
+              src={getMediaUrl("/images/sky_laban_logo_transparent.png")}
               alt="Sky Laban"
               fill
               className="object-contain"
@@ -132,6 +133,23 @@ export default function AdminLoginPage() {
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-0.5 pb-1">
+            <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-500 hover:text-slate-700 select-none">
+              <input
+                type="checkbox"
+                defaultChecked
+                className="w-3.5 h-3.5 rounded border-slate-300 text-[#0754C9] focus:ring-[#0754C9]/20 cursor-pointer"
+              />
+              <span>Remember me</span>
+            </label>
+            <Link
+              href="/admin/forgot-password"
+              className="text-xs font-semibold text-[#0754C9] hover:text-[#063B91] hover:underline transition-colors"
+            >
+              Forgot password?
+            </Link>
           </div>
 
           <button

@@ -1,13 +1,17 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { createBrowserClient } from "@supabase/ssr";
+import {
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY,
+  SUPABASE_MEDIA_BUCKET,
+} from "./supabase/config";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://gioxrotqpuzmgtoayfre.supabase.co";
-const supabasePublishableKey =
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  "sb_publishable_404QfezZPc8L2qaJ9c6XCg_m8M_DmUs";
+const supabaseUrl = SUPABASE_URL;
+const supabasePublishableKey = SUPABASE_PUBLISHABLE_KEY;
+export const MEDIA_BUCKET = SUPABASE_MEDIA_BUCKET;
 
-export const MEDIA_BUCKET = process.env.SUPABASE_MEDIA_BUCKET || "sky-laban-media";
+export { createClient as createBrowserClientSSR } from "./supabase/client";
+export { createClient as createServerClientSSR } from "./supabase/server";
 
 let cachedBrowserClient: SupabaseClient | null = null;
 
@@ -141,5 +145,41 @@ export async function deleteCategoryFromSupabaseTable(id: string): Promise<void>
     console.warn("Supabase category delete notice:", err);
   }
 }
+
+/**
+ * Sync Product to Supabase table
+ */
+export async function syncProductToSupabaseTable(product: any): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  try {
+    await client.from("products").upsert({
+      id: product.id,
+      name: product.name,
+      description: product.description || product.tagline || "",
+      image_url: product.image,
+      price: product.price || null,
+      display_order: product.order || 1,
+      is_published: product.isAvailable !== false,
+      updated_at: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.warn("Supabase product upsert notice:", err);
+  }
+}
+
+/**
+ * Delete Product from Supabase table
+ */
+export async function deleteProductFromSupabaseTable(id: string): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  try {
+    await client.from("products").delete().eq("id", id);
+  } catch (err) {
+    console.warn("Supabase product delete notice:", err);
+  }
+}
+
 
 

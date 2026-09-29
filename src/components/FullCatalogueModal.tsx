@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Search, Sparkles, Eye, ArrowUpRight, Filter } from "lucide-react";
 import { PRODUCTS_DATA, ProductItem, PRODUCT_CATEGORIES } from "@/data/brandData";
+import { getMediaUrl } from "@/lib/media";
 
 interface FullCatalogueModalProps {
   isOpen: boolean;
@@ -157,7 +158,7 @@ export default function FullCatalogueModal({
                       )}
                       <div className="relative w-full h-full flex items-center justify-center">
                         <Image
-                          src={prod.image}
+                          src={getMediaUrl(prod.image)}
                           alt={prod.name}
                           fill
                           sizes="200px"

@@ -481,6 +481,46 @@
       "order": 24
     },
     {
+      "id": "aseera-mango",
+      "name": "Aseera Mango",
+      "tagline": "Fresh Tropical Alphonso Mango Cream Nectar",
+      "category": "Traditional Desserts",
+      "badge": "Bottled Fresh",
+      "image": "/products/aseera-mango-bottle.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Luscious tropical dessert drink made with ripe Alphonso mango pulp churned into fresh sweet cultured laban cream.",
+      "tastingNotes": [
+        "Alphonso Mango Pulp",
+        "Cultured Dairy Cream",
+        "Fragrant Cardamom"
+      ],
+      "servingSuggestion": "Shake well and drink ice cold.",
+      "pairingNotes": "Fresh mint or butter cookies.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 25
+    },
+    {
+      "id": "aseera-nutella",
+      "name": "Aseera Nutella",
+      "tagline": "Drinkable Cocoa Hazelnut Cream Nectar",
+      "category": "Traditional Desserts",
+      "badge": "Bottled Fresh",
+      "image": "/products/aseera-nutella-bottle.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Chilled drinkable dessert combining Italian Nutella cocoa-hazelnut spread with creamy dairy nectar in a grab-and-go glass bottle.",
+      "tastingNotes": [
+        "Nutella Hazelnut Swirl",
+        "Chilled Whole Milk",
+        "Roasted Hazelnut Crust"
+      ],
+      "servingSuggestion": "Keep refrigerated at 2°C. Shake vigorously before opening.",
+      "pairingNotes": "Fresh waffles or warm churros.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 26
+    },
+    {
       "id": "sheer-khurma",
       "name": "Sheer Khurma",
       "tagline": "Royal Eid Vermicelli Pudding with Dates & Dry Fruits",
@@ -498,7 +538,7 @@
       "pairingNotes": "Karak tea or black coffee.",
       "isHero": false,
       "isAvailable": true,
-      "order": 25
+      "order": 27
     },
     {
       "id": "bomb-dessert",
@@ -1074,7 +1114,7 @@
       "id": "founder-akram",
       "name": "B. Akram Ali Khan",
       "title": "Founder & Chief Visionary",
-      "image": "/images/Founder1(1).png",
+      "image": "/images/founders/akram-ali-khan-hd.jpg",
       "description": "With a deep passion for premium desserts and a vision to create a brand that brings people together, B. Akram Ali Khan laid the foundation of Sky Laban. His commitment to quality, innovation, and customer happiness continues to guide the brand’s journey from our first outlet in Shaikpet to 15 outlets across Hyderabad and beyond.",
       "order": 1,
       "isActive": true

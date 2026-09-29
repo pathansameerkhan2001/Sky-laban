@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Sparkles, Compass, ShieldCheck, Quote } from "lucide-react";
+import { getMediaUrl } from "@/lib/media";
 
 export interface FounderData {
   id: string;
@@ -20,7 +21,7 @@ const DEFAULT_FOUNDERS: FounderData[] = [
     id: "founder-akram",
     name: "B. Akram Ali Khan",
     title: "Founder & Chief Visionary",
-    image: "/images/Founder1(1).png",
+    image: "/images/founders/akram-ali-khan-hd.jpg",
     description:
       "B. Akram Ali Khan is the Founder and Chief Visionary of Sky Laban, helping shape the brand’s vision and its journey in bringing distinctive dessert experiences to more communities. With a deep passion for premium desserts and quality craftsmanship, he guides Sky Laban’s growth from our first outlet in Shaikpet to 15 outlets across Hyderabad and beyond.",
     quote: "Turning a simple dream into a shared happiness across the city.",
@@ -117,7 +118,7 @@ export default function Founders() {
             <div className="lg:col-span-5 flex justify-center">
               <div className="relative w-full max-w-sm aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl border-4 border-white ring-4 ring-[#DDF5FF] bg-gradient-to-br from-[#EBF5FE] to-[#D8EFFF] group">
                 <Image
-                  src={akram.image}
+                  src={getMediaUrl(akram.image)}
                   alt={akram.name}
                   fill
                   sizes="(max-width: 768px) 100vw, 420px"
@@ -211,7 +212,7 @@ export default function Founders() {
             <div className="lg:col-span-5 flex justify-center order-1 lg:order-2">
               <div className="relative w-full max-w-sm aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl border-4 border-white ring-4 ring-[#DDF5FF] bg-gradient-to-br from-[#EBF5FE] to-[#D8EFFF] group">
                 <Image
-                  src={aslam.image}
+                  src={getMediaUrl(aslam.image)}
                   alt={aslam.name}
                   fill
                   sizes="(max-width: 768px) 100vw, 420px"
