@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Store, CheckCircle, Send, Sparkles } from "lucide-react";
+import { X, Store, CheckCircle, Send, AlertCircle } from "lucide-react";
 
 interface FranchiseModalProps {
   isOpen: boolean;
@@ -11,6 +11,8 @@ interface FranchiseModalProps {
 
 export default function FranchiseModal({ isOpen, onClose }: FranchiseModalProps) {
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -34,9 +36,36 @@ export default function FranchiseModal({ isOpen, onClose }: FranchiseModalProps)
     };
   }, [isOpen, onClose]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setSubmitting(true);
+    setErrorMsg("");
+
+    try {
+      const res = await fetch("/api/enquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          city: formData.targetCity,
+          type: "franchise",
+          investmentBudget: formData.experience,
+          preferredLocation: formData.targetCity,
+          message: formData.notes || `Franchise inquiry for ${formData.targetCity}. Experience: ${formData.experience || "Not stated"}.`,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to submit inquiry");
+      }
+      setSubmitted(true);
+    } catch {
+      setErrorMsg("Failed to submit inquiry. Please check your network or call our franchise desk.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -60,7 +89,7 @@ export default function FranchiseModal({ isOpen, onClose }: FranchiseModalProps)
         >
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
+            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
@@ -75,7 +104,7 @@ export default function FranchiseModal({ isOpen, onClose }: FranchiseModalProps)
                 Thank You for Your Interest!
               </h3>
               <p className="text-sm text-slate-600 max-w-md mx-auto mb-6">
-                Our global franchise development team has received your inquiry for{" "}
+                Our franchise development team has received your inquiry for{" "}
                 <span className="font-semibold text-[#0754C9]">{formData.targetCity || "your city"}</span>. We will review your profile and reach out within 24–48 hours.
               </p>
               <button
@@ -83,7 +112,7 @@ export default function FranchiseModal({ isOpen, onClose }: FranchiseModalProps)
                   setSubmitted(false);
                   onClose();
                 }}
-                className="px-6 py-2.5 rounded-full bg-[#0754C9] text-white text-sm font-semibold hover:bg-[#0645B8]"
+                className="px-6 py-2.5 rounded-full bg-[#0754C9] text-white text-sm font-semibold hover:bg-[#0645B8] cursor-pointer"
               >
                 Done
               </button>
@@ -97,9 +126,16 @@ export default function FranchiseModal({ isOpen, onClose }: FranchiseModalProps)
               <h3 className="text-2xl font-extrabold text-[#063B91] mb-2">
                 Expand With Sky Laban
               </h3>
-              <p className="text-xs sm:text-sm text-slate-600 mb-6">
+              <p className="text-xs sm:text-sm text-slate-600 mb-5">
                 Please provide your contact details and target territory to receive our comprehensive brand brochure and partnership prospectus.
               </p>
+
+              {errorMsg && (
+                <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -139,7 +175,7 @@ export default function FranchiseModal({ isOpen, onClose }: FranchiseModalProps)
                     <input
                       type="tel"
                       required
-                      placeholder="+1 (555) 000-0000"
+                      placeholder="+91 98765 43210"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0754C9] focus:ring-1 focus:ring-[#0754C9]"
@@ -162,7 +198,7 @@ export default function FranchiseModal({ isOpen, onClose }: FranchiseModalProps)
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Food & Beverage Experience (Optional)
+                    Food &amp; Beverage Experience (Optional)
                   </label>
                   <select
                     value={formData.experience}
@@ -172,7 +208,7 @@ export default function FranchiseModal({ isOpen, onClose }: FranchiseModalProps)
                     <option value="">Select experience level</option>
                     <option value="none">First-time entrepreneur</option>
                     <option value="retail">Retail / Hospitality experience</option>
-                    <option value="multi-unit">Existing multi-unit F&B operator</option>
+                    <option value="multi-unit">Existing multi-unit F&amp;B operator</option>
                     <option value="investment">Institutional investor</option>
                   </select>
                 </div>
@@ -192,10 +228,11 @@ export default function FranchiseModal({ isOpen, onClose }: FranchiseModalProps)
 
                 <button
                   type="submit"
-                  className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-full bg-[#0754C9] hover:bg-[#0645B8] text-white font-semibold text-sm shadow-md transition-all cursor-pointer"
+                  disabled={submitting}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-full bg-[#0754C9] hover:bg-[#0645B8] text-white font-semibold text-sm shadow-md transition-all cursor-pointer disabled:opacity-60"
                 >
                   <Send className="w-4 h-4" />
-                  <span>Submit Franchise Inquiry</span>
+                  <span>{submitting ? "Submitting..." : "Submit Franchise Inquiry"}</span>
                 </button>
               </form>
             </div>

@@ -112,7 +112,7 @@ export default function Hero() {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className="hero relative w-full overflow-hidden bg-[#38B4F8] select-none focus:outline-none h-[52vh] sm:h-[60vh] md:h-[72vh] lg:h-[78vh] min-h-[380px] sm:min-h-[460px] md:min-h-[520px] max-h-[800px]"
+      className="hero relative w-full overflow-hidden bg-[#35AFF2] select-none focus:outline-none aspect-[16/10] sm:aspect-[16/9] md:aspect-auto md:h-[68vh] lg:h-[75vh] min-h-[260px] sm:min-h-[360px] md:min-h-[500px] max-h-[820px]"
     >
       {/* Slides Track */}
       <div className="relative w-full h-full">
@@ -163,25 +163,25 @@ export default function Hero() {
       <button
         onClick={handlePrev}
         aria-label="Previous slide"
-        className="absolute left-3 sm:left-6 md:left-8 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/85 hover:bg-white text-[#0754C9] shadow-[0_4px_16px_rgba(7,84,201,0.18)] border border-white/80 flex items-center justify-center transition-all duration-200 hover:scale-108 active:scale-95 cursor-pointer"
+        className="absolute left-2.5 sm:left-6 md:left-8 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/85 hover:bg-white text-[#0754C9] shadow-[0_4px_16px_rgba(7,84,201,0.18)] border border-white/80 flex items-center justify-center transition-all duration-200 hover:scale-108 active:scale-95 cursor-pointer"
       >
-        <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
+        <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 stroke-[2.5]" />
       </button>
 
       {/* CAROUSEL NAVIGATION: Next Button (Frosted Pill) */}
       <button
         onClick={handleNext}
         aria-label="Next slide"
-        className="absolute right-3 sm:right-6 md:right-8 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/85 hover:bg-white text-[#0754C9] shadow-[0_4px_16px_rgba(7,84,201,0.18)] border border-white/80 flex items-center justify-center transition-all duration-200 hover:scale-108 active:scale-95 cursor-pointer"
+        className="absolute right-2.5 sm:right-6 md:right-8 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/85 hover:bg-white text-[#0754C9] shadow-[0_4px_16px_rgba(7,84,201,0.18)] border border-white/80 flex items-center justify-center transition-all duration-200 hover:scale-108 active:scale-95 cursor-pointer"
       >
-        <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
+        <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6 stroke-[2.5]" />
       </button>
 
       {/* CAROUSEL PAGINATION: Discreet Center Dots */}
       <div
         role="tablist"
         aria-label="Carousel Slides"
-        className="absolute bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/50 backdrop-blur-md border border-white/60 shadow-sm"
+        className="absolute bottom-2.5 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-white/50 backdrop-blur-md border border-white/60 shadow-sm"
       >
         {HERO_SLIDES.map((slide, idx) => {
           const isActive = currentSlide === idx;
@@ -195,8 +195,8 @@ export default function Hero() {
               onClick={() => setCurrentSlide(idx)}
               className={`rounded-full transition-all duration-300 cursor-pointer ${
                 isActive
-                  ? "w-6 sm:w-7 h-2 bg-[#0754C9]"
-                  : "w-2 h-2 bg-slate-300 hover:bg-[#0754C9]/60"
+                  ? "w-5 sm:w-7 h-1.5 sm:h-2 bg-[#0754C9]"
+                  : "w-1.5 sm:w-2 h-1.5 sm:h-2 bg-slate-300 hover:bg-[#0754C9]/60"
               }`}
             />
           );

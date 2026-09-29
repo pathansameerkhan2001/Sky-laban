@@ -368,13 +368,12 @@ export default function OurOutlets() {
 
             {/* 4. Short Paragraph */}
             <p className="text-sm sm:text-base text-slate-600 leading-relaxed mb-6 sm:mb-7 max-w-xl">
-              From our existing outlets to upcoming locations, Sky Laban continues to bring its
-              signature desserts and creamy creations to more customers across South India.
+              Alhamdulillah, from our first store in Shaikpet in April 2026, Sky Laban has grown into a family of 15 outlets. Every location reflects our commitment to quality, consistency, and sharing moments of pure delight with our customers.
             </p>
 
             {/* 5. Two Statistics Cards (2-column on desktop and mobile) */}
             <div className="w-full grid grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
-              {/* Card 1: 12 Existing Outlets */}
+              {/* Card 1: 15 Outlets */}
               <motion.div
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -393,10 +392,10 @@ export default function OurOutlets() {
 
                 <div className="relative z-10 flex flex-col">
                   <span className="text-3xl sm:text-4xl font-black text-[#063B91] leading-none tracking-tight">
-                    12
+                    15
                   </span>
                   <span className="text-xs sm:text-sm font-bold text-slate-700 mt-1 sm:mt-1.5 leading-tight">
-                    Existing Outlets
+                    Outlets Growing
                   </span>
                 </div>
               </motion.div>

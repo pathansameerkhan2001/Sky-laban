@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Store, Send, Menu, X, Sparkles } from "lucide-react";
+import { ChevronDown, Store, Send, Menu, X, Sparkles, Phone } from "lucide-react";
 import { NAVIGATION_DATA } from "@/data/brandData";
 
 interface NavigationProps {
@@ -13,173 +13,194 @@ interface NavigationProps {
 }
 
 export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }: NavigationProps) {
-  const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [productsDropdownOpen, setProductsDropdownOpen] = useState(false);
   const [activeLink, setActiveLink] = useState("Home");
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   return (
-    <nav className="w-full px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 transition-all duration-300">
+    <nav className="w-full px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 transition-all">
       <div className="max-w-7xl mx-auto">
-        {/* Floating Rounded Island Navbar */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className={`relative w-full rounded-2xl md:rounded-full border border-white/70 shadow-[0_10px_35px_rgba(7,84,201,0.09)] transition-all duration-300 ${
-            scrolled
-              ? "bg-[#eaf6ff]/90 backdrop-blur-md py-2 px-4 sm:px-6"
-              : "bg-[#eef8fe]/80 backdrop-blur-sm py-2.5 sm:py-3 px-4 sm:px-7"
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            {/* LEFT: Sky Laban Exact Logo */}
-            <motion.div
-              initial={{ opacity: 0, x: -15 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="flex items-center"
-            >
+        {/* Floating Rounded Island Navbar matching Header Mockup Reference */}
+        <div className="relative w-full rounded-2xl md:rounded-full bg-[#eef8fe]/95 backdrop-blur-md border border-white/80 shadow-[0_10px_35px_rgba(7,84,201,0.08)] py-2 sm:py-2.5 px-3.5 sm:px-6">
+          
+          {/* ================= DESKTOP VIEW (hidden md:flex) ================= */}
+          <div className="hidden md:flex items-center justify-between">
+            {/* Desktop Left: Sky Laban Exact Logo aligned left */}
+            <div className="flex items-center">
               <a
                 href="#home"
-                className="group relative flex items-center transition-transform hover:scale-[1.03] active:scale-[0.98]"
+                className="group relative flex items-center transition-transform hover:scale-[1.02] active:scale-[0.98]"
                 aria-label="Sky Laban Home"
                 onClick={() => setActiveLink("Home")}
               >
-                <div className="relative w-28 sm:w-36 md:w-40 h-10 sm:h-12 md:h-14">
+                <div className="relative w-36 lg:w-40 h-11 lg:h-13">
                   <Image
                     src="/images/sky_laban_logo_transparent.png"
                     alt="Sky Laban Logo"
                     fill
-                    sizes="(max-width: 640px) 112px, (max-width: 768px) 144px, 160px"
+                    sizes="160px"
                     className="object-contain drop-shadow-[0_2px_8px_rgba(7,84,201,0.18)]"
                     priority
-                    loading="eager"
                   />
                 </div>
               </a>
-            </motion.div>
-
-            {/* CENTER: Navigation Links (Desktop) */}
-            <div className="hidden md:flex items-center space-x-8 lg:space-x-10">
-              {NAVIGATION_DATA.links.map((link, idx) => {
-                const isDropdown = Boolean(link.hasDropdown);
-                const isActive = activeLink === link.label;
-
-                if (isDropdown) {
-                  return (
-                    <div
-                      key={link.label}
-                      className="relative"
-                      onMouseEnter={() => setProductsDropdownOpen(true)}
-                      onMouseLeave={() => setProductsDropdownOpen(false)}
-                    >
-                      <button
-                        onClick={() => {
-                          setActiveLink(link.label);
-                          const el = document.getElementById("products");
-                          if (el) el.scrollIntoView({ behavior: "smooth" });
-                        }}
-                        className={`flex items-center gap-1.5 font-medium text-[15px] transition-colors py-1 ${
-                          isActive
-                            ? "text-[#0754C9] font-semibold"
-                            : "text-[#1c3f68] hover:text-[#0754C9]"
-                        }`}
-                        aria-expanded={productsDropdownOpen}
-                      >
-                        <span>{link.label}</span>
-                        <ChevronDown
-                          className={`w-4 h-4 transition-transform duration-200 ${
-                            productsDropdownOpen ? "rotate-180 text-[#0754C9]" : "text-[#1c3f68]"
-                          }`}
-                        />
-                      </button>
-
-                      {/* Dropdown Menu */}
-                      <AnimatePresence>
-                        {productsDropdownOpen && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 6, scale: 0.96 }}
-                            transition={{ duration: 0.18 }}
-                            className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-64 rounded-2xl bg-white/95 backdrop-blur-lg border border-[#DDF5FF] shadow-[0_15px_35px_rgba(7,84,201,0.12)] p-2 z-50 overflow-hidden"
-                          >
-                            <div className="text-[11px] font-semibold tracking-wider uppercase px-3 py-1.5 text-[#0754C9]/70 flex items-center gap-1 border-b border-[#DDF5FF]">
-                              <Sparkles className="w-3 h-3 text-[#43B8F2]" />
-                              <span>Featured Desserts</span>
-                            </div>
-                            <div className="pt-1">
-                              {link.subItems?.map((item) => (
-                                <a
-                                  key={item.label}
-                                  href={item.href}
-                                  onClick={() => {
-                                    setProductsDropdownOpen(false);
-                                    setActiveLink("Products");
-                                  }}
-                                  className="block px-3 py-2 text-sm text-[#0c2340] hover:text-[#0754C9] hover:bg-[#DDF5FF]/50 rounded-xl transition-all font-medium"
-                                >
-                                  {item.label}
-                                </a>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  );
-                }
-
-                return (
-                  <motion.div
-                    key={link.label}
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.1 + idx * 0.06 }}
-                    className="relative"
-                  >
-                    <a
-                      href={link.href}
-                      onClick={() => setActiveLink(link.label)}
-                      className={`relative font-medium text-[15px] transition-colors py-1 block ${
-                        isActive
-                          ? "text-[#0754C9] font-semibold"
-                          : "text-[#1c3f68] hover:text-[#0754C9]"
-                      }`}
-                    >
-                      {link.label}
-                      {isActive && (
-                        <motion.div
-                          layoutId="activeNavUnderline"
-                          className="absolute -bottom-1 left-0 right-0 h-0.5 bg-[#0754C9] rounded-full mx-auto w-5"
-                          transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                        />
-                      )}
-                    </a>
-                  </motion.div>
-                );
-              })}
             </div>
 
-            {/* RIGHT: ONLY ONE Franchise Button + Let Connect Button */}
-            <div className="hidden md:flex items-center space-x-3.5">
-              {/* Franchise Button (Single, outlined pill style matching mockup) */}
-              <motion.a
-                whileHover={{ y: -2, boxShadow: "0 6px 20px rgba(7,84,201,0.15)" }}
-                whileTap={{ scale: 0.97 }}
+            {/* Desktop Center: Navigation Links */}
+            <div className="flex items-center space-x-7 lg:space-x-10">
+              {/* Home */}
+              <div className="relative">
+                <a
+                  href="#home"
+                  onClick={() => setActiveLink("Home")}
+                  className={`relative font-semibold text-sm lg:text-[15px] transition-colors py-1 block ${
+                    activeLink === "Home" ? "text-[#0754C9]" : "text-[#1c3f68] hover:text-[#0754C9]"
+                  }`}
+                >
+                  Home
+                  {activeLink === "Home" && (
+                    <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-[#0754C9] rounded-full mx-auto w-5" />
+                  )}
+                </a>
+              </div>
+
+              {/* Our Story */}
+              <div className="relative">
+                <a
+                  href="#our-story"
+                  onClick={() => setActiveLink("Our Story")}
+                  className={`relative font-semibold text-sm lg:text-[15px] transition-colors py-1 block ${
+                    activeLink === "Our Story" ? "text-[#0754C9]" : "text-[#1c3f68] hover:text-[#0754C9]"
+                  }`}
+                >
+                  Our Story
+                  {activeLink === "Our Story" && (
+                    <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-[#0754C9] rounded-full mx-auto w-5" />
+                  )}
+                </a>
+              </div>
+
+              {/* Categories */}
+              <div className="relative">
+                <a
+                  href="#categories"
+                  onClick={() => setActiveLink("Categories")}
+                  className={`relative font-semibold text-sm lg:text-[15px] transition-colors py-1 block ${
+                    activeLink === "Categories" ? "text-[#0754C9]" : "text-[#1c3f68] hover:text-[#0754C9]"
+                  }`}
+                >
+                  Categories
+                  {activeLink === "Categories" && (
+                    <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-[#0754C9] rounded-full mx-auto w-5" />
+                  )}
+                </a>
+              </div>
+
+              {/* Products with Dropdown */}
+              <div
+                className="relative"
+                onMouseEnter={() => setProductsDropdownOpen(true)}
+                onMouseLeave={() => setProductsDropdownOpen(false)}
+              >
+                <a
+                  href="#products"
+                  onClick={() => setActiveLink("Products")}
+                  className={`flex items-center gap-1 font-semibold text-sm lg:text-[15px] transition-colors py-1 ${
+                    activeLink === "Products" ? "text-[#0754C9]" : "text-[#1c3f68] hover:text-[#0754C9]"
+                  }`}
+                >
+                  <span>Products</span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                      productsDropdownOpen ? "rotate-180 text-[#0754C9]" : "text-[#1c3f68]"
+                    }`}
+                  />
+                  {activeLink === "Products" && (
+                    <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-[#0754C9] rounded-full mx-auto w-5" />
+                  )}
+                </a>
+
+                {/* Dropdown Menu */}
+                <AnimatePresence>
+                  {productsDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 6, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 4, scale: 0.96 }}
+                      transition={{ duration: 0.16 }}
+                      className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-64 rounded-2xl bg-white/95 backdrop-blur-lg border border-[#DDF5FF] shadow-[0_15px_35px_rgba(7,84,201,0.12)] p-2 z-50 overflow-hidden"
+                    >
+                      <div className="text-[10px] font-bold tracking-wider uppercase px-3 py-1.5 text-[#0754C9] flex items-center gap-1 border-b border-[#DDF5FF]">
+                        <Sparkles className="w-3 h-3 text-[#43B8F2]" />
+                        <span>Artisanal Desserts</span>
+                      </div>
+                      <div className="pt-1 space-y-0.5">
+                        {[
+                          "Salankatia",
+                          "Gulstha",
+                          "Koushiri",
+                          "Ruh Hayati",
+                          "Lou'a",
+                          "Hiba Cake",
+                          "Kunafa & Pastry",
+                          "Traditional Desserts",
+                          "Special",
+                        ].map((cat) => (
+                          <a
+                            key={cat}
+                            href="#products"
+                            onClick={() => {
+                              setProductsDropdownOpen(false);
+                              setActiveLink("Products");
+                            }}
+                            className="block px-3 py-1.5 text-xs text-slate-700 hover:text-[#0754C9] hover:bg-[#DDF5FF]/50 rounded-xl transition-all font-semibold"
+                          >
+                            {cat}
+                          </a>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Founders */}
+              <div className="relative">
+                <a
+                  href="#founders"
+                  onClick={() => setActiveLink("Founders")}
+                  className={`relative font-semibold text-sm lg:text-[15px] transition-colors py-1 block ${
+                    activeLink === "Founders" ? "text-[#0754C9]" : "text-[#1c3f68] hover:text-[#0754C9]"
+                  }`}
+                >
+                  Founders
+                  {activeLink === "Founders" && (
+                    <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-[#0754C9] rounded-full mx-auto w-5" />
+                  )}
+                </a>
+              </div>
+
+              {/* Outlets */}
+              <div className="relative">
+                <a
+                  href="#our-outlets"
+                  onClick={() => setActiveLink("Outlets")}
+                  className={`relative font-semibold text-sm lg:text-[15px] transition-colors py-1 block ${
+                    activeLink === "Outlets" ? "text-[#0754C9]" : "text-[#1c3f68] hover:text-[#0754C9]"
+                  }`}
+                >
+                  Outlets
+                  {activeLink === "Outlets" && (
+                    <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-[#0754C9] rounded-full mx-auto w-5" />
+                  )}
+                </a>
+              </div>
+            </div>
+
+            {/* Desktop Right: Franchise and Let Connect buttons matching Reference */}
+            <div className="flex items-center space-x-3">
+              {/* Franchise Button (Pill outline style) */}
+              <a
                 href={NAVIGATION_DATA.cta.franchise.href}
                 onClick={(e) => {
                   if (onOpenFranchiseModal) {
@@ -187,16 +208,14 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
                     onOpenFranchiseModal();
                   }
                 }}
-                className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full border-1.5 border-[#0754C9] text-[#0754C9] bg-white/70 hover:bg-[#0754C9]/5 font-semibold text-sm transition-all"
+                className="inline-flex items-center gap-2 px-4 py-2 lg:px-5 lg:py-2.5 rounded-full border-1.5 border-[#0754C9] text-[#0754C9] bg-white hover:bg-[#0754C9]/5 font-bold text-xs lg:text-sm transition-all shadow-xs hover:shadow-sm"
               >
                 <Store className="w-4 h-4 text-[#0754C9]" />
-                <span>{NAVIGATION_DATA.cta.franchise.label}</span>
-              </motion.a>
+                <span>Franchise</span>
+              </a>
 
               {/* Let Connect Button (Solid Blue Pill) */}
-              <motion.button
-                whileHover={{ scale: 1.03, y: -2, boxShadow: "0 8px 25px rgba(7,84,201,0.28)" }}
-                whileTap={{ scale: 0.97 }}
+              <button
                 onClick={() => {
                   if (onOpenConnectModal) {
                     onOpenConnectModal();
@@ -205,25 +224,68 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
                     if (el) el.scrollIntoView({ behavior: "smooth" });
                   }
                 }}
-                className="flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-2.5 rounded-full bg-[#0754C9] hover:bg-[#0645B8] text-white font-semibold text-sm shadow-md transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-4 py-2 lg:px-5 lg:py-2.5 rounded-full bg-[#0754C9] hover:bg-[#0645B8] text-white font-bold text-xs lg:text-sm shadow-md shadow-[#0754C9]/20 transition-all hover:scale-102 active:scale-98 cursor-pointer"
               >
                 <Send className="w-4 h-4 text-white" />
-                <span>{NAVIGATION_DATA.cta.letConnect.label}</span>
-              </motion.button>
-            </div>
-
-            {/* Mobile Hamburger Button */}
-            <div className="flex md:hidden items-center">
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 rounded-xl text-[#0754C9] hover:bg-white/60 focus:outline-none transition-colors"
-                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-              >
-                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                <span>Let Connect</span>
               </button>
             </div>
           </div>
-        </motion.div>
+
+          {/* ================= MOBILE VIEW (flex md:hidden) ================= */}
+          {/* Strictly 3-column layout: Left menu icon, Center logo, Right action icon */}
+          <div className="flex md:hidden items-center justify-between w-full h-11">
+            {/* Left: Mobile Menu Icon */}
+            <div className="w-10 flex justify-start items-center shrink-0">
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-1.5 rounded-xl text-[#0754C9] hover:bg-white/80 active:bg-white focus:outline-none transition-colors"
+                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              >
+                {mobileMenuOpen ? <X className="w-6 h-6 stroke-[2.2]" /> : <Menu className="w-6 h-6 stroke-[2.2]" />}
+              </button>
+            </div>
+
+            {/* Center: Perfectly Centered Sky Laban Logo */}
+            <div className="flex-1 flex justify-center items-center">
+              <a
+                href="#home"
+                onClick={() => setMobileMenuOpen(false)}
+                className="relative block w-28 sm:w-32 h-9 sm:h-10"
+                aria-label="Sky Laban Mobile Home"
+              >
+                <Image
+                  src="/images/sky_laban_logo_transparent.png"
+                  alt="Sky Laban Logo"
+                  fill
+                  sizes="128px"
+                  className="object-contain"
+                  priority
+                />
+              </a>
+            </div>
+
+            {/* Right: Action Icon (Let Connect / Contact) */}
+            <div className="w-10 flex justify-end items-center shrink-0">
+              <button
+                onClick={() => {
+                  if (onOpenConnectModal) {
+                    onOpenConnectModal();
+                  } else {
+                    const el = document.getElementById("contact");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }
+                }}
+                className="w-9 h-9 rounded-full bg-[#0754C9] text-white flex items-center justify-center shadow-sm hover:bg-[#0645B8] active:scale-95 transition-all"
+                aria-label="Contact Sky Laban"
+                title="Let Connect"
+              >
+                <Send className="w-4 h-4 text-white translate-x-0.2" />
+              </button>
+            </div>
+          </div>
+
+        </div>
 
         {/* Mobile Navigation Drawer */}
         <AnimatePresence>
@@ -232,58 +294,78 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.25 }}
-              className="md:hidden mt-2 rounded-2xl bg-white/95 backdrop-blur-xl border border-[#DDF5FF] shadow-xl p-5 overflow-hidden"
+              transition={{ duration: 0.22, ease: "easeOut" }}
+              className="md:hidden mt-2 rounded-2xl bg-white/95 backdrop-blur-xl border border-[#DDF5FF] shadow-xl p-4 overflow-hidden"
             >
-              <div className="flex flex-col space-y-3.5">
+              <div className="flex flex-col space-y-2">
                 <a
                   href="#home"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2 text-base font-semibold text-[#0754C9] hover:bg-[#DDF5FF]/40 rounded-xl"
+                  className="px-3.5 py-2.5 text-sm font-bold text-[#0754C9] bg-[#EBF5FE]/70 rounded-xl"
                 >
                   Home
                 </a>
                 <a
-                  href="#our-story"
+                  href="#categories"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2 text-base font-medium text-[#1c3f68] hover:text-[#0754C9] hover:bg-[#DDF5FF]/40 rounded-xl"
+                  className="px-3.5 py-2.5 text-sm font-semibold text-slate-700 hover:text-[#0754C9] hover:bg-[#EBF5FE]/40 rounded-xl transition-colors"
                 >
-                  Our Story
+                  Categories
                 </a>
                 <a
                   href="#products"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2 text-base font-medium text-[#1c3f68] hover:text-[#0754C9] hover:bg-[#DDF5FF]/40 rounded-xl"
+                  className="px-3.5 py-2.5 text-sm font-semibold text-slate-700 hover:text-[#0754C9] hover:bg-[#EBF5FE]/40 rounded-xl transition-colors"
                 >
-                  Products
+                  Products &amp; Desserts
                 </a>
                 <a
-                  href="#franchise"
-                  onClick={(e) => {
-                    setMobileMenuOpen(false);
-                    if (onOpenFranchiseModal) {
-                      e.preventDefault();
-                      onOpenFranchiseModal();
-                    }
-                  }}
-                  className="flex items-center gap-2 px-3 py-2 text-base font-medium text-[#0754C9] hover:bg-[#DDF5FF]/40 rounded-xl"
+                  href="#our-story"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3.5 py-2.5 text-sm font-semibold text-slate-700 hover:text-[#0754C9] hover:bg-[#EBF5FE]/40 rounded-xl transition-colors"
                 >
-                  <Store className="w-4 h-4" />
-                  <span>Franchise</span>
+                  Our Story
+                </a>
+                <a
+                  href="#founders"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3.5 py-2.5 text-sm font-semibold text-slate-700 hover:text-[#0754C9] hover:bg-[#EBF5FE]/40 rounded-xl transition-colors"
+                >
+                  Founders
+                </a>
+                <a
+                  href="#reels"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3.5 py-2.5 text-sm font-semibold text-slate-700 hover:text-[#0754C9] hover:bg-[#EBF5FE]/40 rounded-xl transition-colors"
+                >
+                  Moments of Delight
+                </a>
+                <a
+                  href="#our-outlets"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3.5 py-2.5 text-sm font-semibold text-slate-700 hover:text-[#0754C9] hover:bg-[#EBF5FE]/40 rounded-xl transition-colors"
+                >
+                  Find Outlet
                 </a>
 
-                <div className="pt-2 border-t border-[#DDF5FF]">
+                <div className="pt-2 border-t border-[#DDF5FF] flex flex-col gap-2">
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false);
-                      if (onOpenConnectModal) {
-                        onOpenConnectModal();
-                      } else {
-                        const el = document.getElementById("contact");
-                        if (el) el.scrollIntoView({ behavior: "smooth" });
-                      }
+                      if (onOpenFranchiseModal) onOpenFranchiseModal();
                     }}
-                    className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-[#0754C9] text-white font-semibold text-sm shadow-md"
+                    className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-full border-1.5 border-[#0754C9] text-[#0754C9] font-bold text-xs"
+                  >
+                    <Store className="w-4 h-4" />
+                    <span>Franchise Opportunities</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      if (onOpenConnectModal) onOpenConnectModal();
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-full bg-[#0754C9] text-white font-bold text-xs shadow-md"
                   >
                     <Send className="w-4 h-4" />
                     <span>Let Connect</span>
@@ -293,6 +375,7 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
             </motion.div>
           )}
         </AnimatePresence>
+
       </div>
     </nav>
   );

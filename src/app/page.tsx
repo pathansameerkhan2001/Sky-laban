@@ -4,51 +4,54 @@ import React, { useState } from "react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import HeadlineTicker from "@/components/HeadlineTicker";
+import Categories from "@/components/Categories";
 import Products from "@/components/Products";
 import OurStory from "@/components/OurStory";
-import Benefits from "@/components/Benefits";
-import Franchise from "@/components/Franchise";
-import OurOutlets from "@/components/OurOutlets";
+import Founders from "@/components/Founders";
 import InstagramReels from "@/components/InstagramReels";
+import OurOutlets from "@/components/OurOutlets";
 import Footer from "@/components/Footer";
 import FranchiseModal from "@/components/FranchiseModal";
 import LetConnectModal from "@/components/LetConnectModal";
 
 export default function Home() {
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [isFranchiseModalOpen, setIsFranchiseModalOpen] = useState(false);
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
 
   return (
-    <main className="min-h-screen flex flex-col bg-white overflow-x-hidden w-full">
-      {/* 1 & 2. Top Information Bar + Main Navigation Header */}
+    <main className="min-h-screen flex flex-col bg-white overflow-x-hidden w-full selection:bg-[#DDF5FF] selection:text-[#0754C9]">
+      {/* 1. Header and navigation */}
       <Header
         onOpenFranchiseModal={() => setIsFranchiseModalOpen(true)}
         onOpenConnectModal={() => setIsConnectModalOpen(true)}
       />
 
-      {/* 3. HERO SECTION — Premium Full-Width Carousel (Slides 1 to 4) */}
+      {/* 2. Hero Section */}
       <Hero />
 
-      {/* 4. Animated Headline / Ticker Strip */}
+      {/* 3. Animated Brand Headline / Marquee */}
       <HeadlineTicker />
 
-      {/* 5. Products Section (Clean Multi-column Desktop, 2-Column Mobile) */}
-      <Products />
+      {/* 4. Explore Our Categories */}
+      <Categories onSelectCategory={(catName) => setSelectedCategory(catName)} />
 
-      {/* 6. Our Story / Brand Section */}
+      {/* 5. Products Section */}
+      <Products selectedCategory={selectedCategory} />
+
+      {/* 6. Our Story – Sky Laban */}
       <OurStory />
-      <Benefits />
 
-      {/* 7. Franchise Business Opportunities */}
-      <Franchise onOpenFranchiseModal={() => setIsFranchiseModalOpen(true)} />
+      {/* 7. Our Founders – Two separate founder profiles */}
+      <Founders />
 
-      {/* 8. OUR OUTLETS — Growing Across South India */}
-      <OurOutlets />
-
-      {/* 9. Instagram Reels Section (Reel Sequence Carousel) */}
+      {/* 8. Instagram Reels / Moments of Pure Delight */}
       <InstagramReels />
 
-      {/* 9. Footer */}
+      {/* 9. Outlets / Locations */}
+      <OurOutlets />
+
+      {/* 10. Footer */}
       <Footer
         onOpenFranchiseModal={() => setIsFranchiseModalOpen(true)}
         onOpenConnectModal={() => setIsConnectModalOpen(true)}
@@ -67,3 +70,4 @@ export default function Home() {
     </main>
   );
 }
+

@@ -1,0 +1,92 @@
+import { cookies } from "next/headers";
+
+const SESSION_COOKIE_NAME = "skylaban_admin_session";
+const SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || "skylaban-secret-key-cream-desserts-2025";
+
+export interface AdminSession {
+  userId: string;
+  email: string;
+  name: string;
+  role: string;
+  expiresAt: number;
+}
+
+// Simple deterministic base64url encoder / decoder with HMAC signature
+function base64UrlEncode(str: string): string {
+  return Buffer.from(str)
+    .toString("base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+}
+
+function base64UrlDecode(str: string): string {
+  let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
+  while (base64.length % 4) {
+    base64 += "=";
+  }
+  return Buffer.from(base64, "base64").toString("utf-8");
+}
+
+function sign(payload: string): string {
+  const crypto = require("crypto");
+  return crypto
+    .createHmac("sha256", SESSION_SECRET)
+    .update(payload)
+    .digest("base64url");
+}
+
+export function createToken(session: AdminSession): string {
+  const payload = JSON.stringify(session);
+  const encodedPayload = base64UrlEncode(payload);
+  const signature = sign(encodedPayload);
+  return `${encodedPayload}.${signature}`;
+}
+
+export function verifyToken(token: string): AdminSession | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 2) return null;
+    const [encodedPayload, signature] = parts;
+    const expectedSignature = sign(encodedPayload);
+    if (signature !== expectedSignature) return null;
+
+    const payload = base64UrlDecode(encodedPayload);
+    const session: AdminSession = JSON.parse(payload);
+
+    if (Date.now() > session.expiresAt) {
+      return null;
+    }
+    return session;
+  } catch {
+    return null;
+  }
+}
+
+export async function setAdminSessionCookie(session: AdminSession): Promise<void> {
+  const token = createToken(session);
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7, // 7 days
+  });
+}
+
+export async function clearAdminSessionCookie(): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.delete(SESSION_COOKIE_NAME);
+}
+
+export async function getAdminSession(): Promise<AdminSession | null> {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+    if (!token) return null;
+    return verifyToken(token);
+  } catch {
+    return null;
+  }
+}

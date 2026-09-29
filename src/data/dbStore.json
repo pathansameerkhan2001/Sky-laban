@@ -1,0 +1,1092 @@
+{
+  "products": [
+    {
+      "id": "nutella-gulstha",
+      "name": "Nutella Gulstha",
+      "tagline": "Rich Nutella Cream Swirl with Toasted Nuts",
+      "category": "Gulstha",
+      "badge": "Popular",
+      "image": "/products/chocolate-almond-bowl.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Velvety sweet dairy cream marbled with luscious Italian Nutella cocoa-hazelnut spread and crowned with crunchy roasted almonds.",
+      "tastingNotes": [
+        "Nutella Hazelnut Cream",
+        "Whole Milk Laban",
+        "Toasted Almond Slivers"
+      ],
+      "servingSuggestion": "Chilled at 4°C. Perfect dessert after lunch or dinner.",
+      "pairingNotes": "Arabic coffee or cold brewed iced mocha.",
+      "isHero": true,
+      "isAvailable": true,
+      "order": 1
+    },
+    {
+      "id": "pistachio-lotus-gulstha",
+      "name": "Pistachio Lotus Gulstha",
+      "tagline": "Pure Pistachio Mousse paired with Biscoff Crunch",
+      "category": "Gulstha",
+      "badge": "Signature",
+      "image": "/products/salankatia-pistachio-lotus.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Dual layer perfection combining crushed spiced Lotus Biscoff biscuit crust with aromatic Mediterranean pistachio velvet cream.",
+      "tastingNotes": [
+        "Bronte Pistachio Velvet",
+        "Lotus Biscoff Crumble",
+        "Caramelized Dairy Foam"
+      ],
+      "servingSuggestion": "Scoop both layers together for the authentic texture contrast.",
+      "pairingNotes": "Cardamom black tea or specialty cappuccino.",
+      "isHero": true,
+      "isAvailable": true,
+      "order": 2
+    },
+    {
+      "id": "nutella-pistachio-gulstha",
+      "name": "Nutella Pistachio Gulstha",
+      "tagline": "Decadent Nutella Hazelnut & Emerald Pistachio Harmony",
+      "category": "Gulstha",
+      "badge": "Chef Favorite",
+      "image": "/products/salankatia-duo-cafe.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "A harmonious indulgence uniting dark chocolate Nutella ganache and pure roasted pistachio cream, topped with hand-crushed nuts.",
+      "tastingNotes": [
+        "Dark Cocoa Ganache",
+        "Ground Pistachio Paste",
+        "Crunchy Praline"
+      ],
+      "servingSuggestion": "Allow to sit at room temperature for 2 minutes to soften slightly.",
+      "pairingNotes": "Espresso or hot steamed milk.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 3
+    },
+    {
+      "id": "nutella-salankatia",
+      "name": "Nutella Salankatia",
+      "tagline": "Signature Rich Nutella Fudge & Sweet Laban Cream",
+      "category": "Salankatia",
+      "badge": "Bestseller",
+      "image": "/products/salankatia-nutella-lotus.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Sky Laban’s celebrated Salankatia recipe featuring thick ribbons of Nutella layered with slow-churned cultured milk cream and hazelnut crunch.",
+      "tastingNotes": [
+        "Nutella Velvet Ribbon",
+        "Cultured Farm Cream",
+        "Roasted Hazelnut Crust"
+      ],
+      "servingSuggestion": "Keep refrigerated until served. Enjoy with a dessert spoon.",
+      "pairingNotes": "Warm Karak chai or Turkish coffee.",
+      "isHero": true,
+      "isAvailable": true,
+      "order": 4
+    },
+    {
+      "id": "pistachio-lotus-salankatia",
+      "name": "Pistachio Lotus Salankatia",
+      "tagline": "Artisanal Green Pistachio & Spiced Lotus Crunch",
+      "category": "Salankatia",
+      "badge": "Iconic Flagship",
+      "image": "/products/salankatia-pistachio-lotus.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "The iconic half-and-half masterpiece: sweet pistachio cream on one side and golden spiced Lotus biscuit crumb on the other.",
+      "tastingNotes": [
+        "Roasted Bronte Pistachio",
+        "Spiced Lotus Biscuit",
+        "Rich Dairy Cream"
+      ],
+      "servingSuggestion": "Best served straight from the chilled tub.",
+      "pairingNotes": "Moroccan mint tea or espresso macchiato.",
+      "isHero": true,
+      "isAvailable": true,
+      "order": 5
+    },
+    {
+      "id": "nutella-lotus-salankatia",
+      "name": "Nutella Lotus Salankatia",
+      "tagline": "Warm Cocoa Hazelnut & Spiced Biscoff Fusion",
+      "category": "Salankatia",
+      "badge": "Indulgent",
+      "image": "/products/salankatia-duo-cafe.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Two legendary dessert flavors together in our signature Salankatia tub — rich Nutella cocoa fudge and caramelized Belgian Biscoff cream.",
+      "tastingNotes": [
+        "Belgian Biscoff Swirl",
+        "Velvet Nutella Fudge",
+        "Crisp Butter Crumble"
+      ],
+      "servingSuggestion": "Serve chilled in family bowls.",
+      "pairingNotes": "Iced vanilla latte or fresh pour-over coffee.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 6
+    },
+    {
+      "id": "lotus-koushiri",
+      "name": "Lotus Koushiri",
+      "tagline": "Layered Egyptian Dessert with Crunchy Biscoff Pearls",
+      "category": "Koushiri",
+      "badge": "Specialty",
+      "image": "/products/koushiri-lotus.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Authentic Egyptian sweet Koushiri reimagined with velvety cream layers, crisp golden toasted pastry filaments, and caramelized Lotus biscuit sauce.",
+      "tastingNotes": [
+        "Lotus Caramelized Cream",
+        "Crisp Filo Strands",
+        "Sweet Laban Custard"
+      ],
+      "servingSuggestion": "Enjoy slowly from bottom to top to experience all textural layers.",
+      "pairingNotes": "Fresh mint infusion or iced cardamom tea.",
+      "isHero": true,
+      "isAvailable": true,
+      "order": 7
+    },
+    {
+      "id": "pistachio-koushiri",
+      "name": "Pistachio Koushiri",
+      "tagline": "Roasted Green Pistachio Cream with Crisp Pastry",
+      "category": "Koushiri",
+      "badge": "Customer Choice",
+      "image": "/products/koushiri-pistachio.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Crisp layered pastry noodles enveloped in pure pistachio cream sauce, crowned with whole emerald pistachios and sweet clotted dairy.",
+      "tastingNotes": [
+        "Whole Pistachio Kernels",
+        "Fragrant Sweet Cream",
+        "Toasted Filo Crust"
+      ],
+      "servingSuggestion": "Serve chilled at afternoon tea.",
+      "pairingNotes": "Arabic saffron tea or chilled laban.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 8
+    },
+    {
+      "id": "nutella-hazelnut-koushiri",
+      "name": "Nutella Hazelnut Koushiri",
+      "tagline": "Decadent Chocolate Ganache with Toasted Pastry",
+      "category": "Koushiri",
+      "badge": "Chocoholic",
+      "image": "/products/koushiri-nutella.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Golden crunchy dessert pasta tossed with dark Nutella cocoa sauce, sweet condensed milk cream, and roasted crunchy hazelnut nibs.",
+      "tastingNotes": [
+        "Nutella Hazelnut Cream",
+        "Golden Crispy Threads",
+        "Dark Chocolate Flakes"
+      ],
+      "servingSuggestion": "Best paired with a scoop of vanilla ice cream.",
+      "pairingNotes": "Dark roast espresso or Americano.",
+      "isHero": true,
+      "isAvailable": true,
+      "order": 9
+    },
+    {
+      "id": "nutella-ruh-hayati",
+      "name": "Nutella Ruh Hayati",
+      "tagline": "“Soul of My Life” Nutella Cream Dream",
+      "category": "Ruh Hayati",
+      "badge": "Heritage",
+      "image": "/products/salankatia-kinder.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "A poetic Middle Eastern dessert blending delicate clotted laban mousse with deep hazelnut Nutella swirl and honeyed nut brittle.",
+      "tastingNotes": [
+        "Silky Nutella Foam",
+        "Sweet Clotted Milk",
+        "Caramelized Nut Brittle"
+      ],
+      "servingSuggestion": "Serve chilled in crystal coupe glasses.",
+      "pairingNotes": "Earl Grey tea or Turkish coffee.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 10
+    },
+    {
+      "id": "pistachio-ruh-hayati",
+      "name": "Pistachio Ruh Hayati",
+      "tagline": "Luxurious Pure Pistachio Mousse Delight",
+      "category": "Ruh Hayati",
+      "badge": "Gourmet",
+      "image": "/products/salankatia-pistachio.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Slow-churned velvet pistachio mousse folded with white chocolate laban ganache, garnished with freshly roasted Iranian pistachios.",
+      "tastingNotes": [
+        "Iranian Pistachio Paste",
+        "White Chocolate Laban",
+        "Rose Essence Note"
+      ],
+      "servingSuggestion": "Serve chilled with fresh mint leaf garnish.",
+      "pairingNotes": "Cardamom Karak chai.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 11
+    },
+    {
+      "id": "nutella-lotus-ruh-hayati",
+      "name": "Nutella Lotus Ruh Hayati",
+      "tagline": "Harmonious Trio of Nutella, Lotus & Sweet Cream",
+      "category": "Ruh Hayati",
+      "badge": "Exclusive",
+      "image": "/products/salankatia-nutella-lotus.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "An extraordinary union of rich hazelnut cocoa, spiced Belgian biscuit spread, and our velvety cultured farm dairy cream.",
+      "tastingNotes": [
+        "Spiced Lotus Biscuit",
+        "Rich Nutella Fudge",
+        "Sweet Clotted Laban"
+      ],
+      "servingSuggestion": "Scoop through all three layers for the ultimate treat.",
+      "pairingNotes": "Hot latte or single-origin pour over.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 12
+    },
+    {
+      "id": "nutella-loua",
+      "name": "Nutella Lou'a",
+      "tagline": "Fluffy Sweet Dumplings Glazed with Nutella",
+      "category": "Lou'a",
+      "badge": "Warm & Sweet",
+      "image": "/products/muhallabia-pudding-pot.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Traditional golden fried dessert bites crisp on the exterior and airy inside, generously drenched in warm Nutella ganache.",
+      "tastingNotes": [
+        "Crisp Golden Exterior",
+        "Warm Nutella Ganache",
+        "Toasted Sesame Crunch"
+      ],
+      "servingSuggestion": "Enjoy freshly prepared with family.",
+      "pairingNotes": "Arabic coffee or black tea with sage.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 13
+    },
+    {
+      "id": "pistachio-lotus-loua",
+      "name": "Pistachio Lotus Lou'a",
+      "tagline": "Crisp Dessert Bites Drizzled with Pistachio & Biscoff",
+      "category": "Lou'a",
+      "badge": "Favorite",
+      "image": "/products/mango-muhallabia.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Golden dessert bites glazed with duo sauces — stone-ground pistachio drizzle and caramelized Lotus Biscoff butter.",
+      "tastingNotes": [
+        "Pistachio Drizzle",
+        "Warm Biscoff Glaze",
+        "Airy Puffed Dough"
+      ],
+      "servingSuggestion": "Best enjoyed warm alongside fresh milk tea.",
+      "pairingNotes": "Masala chai or cardamom brew.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 14
+    },
+    {
+      "id": "kinder-loua",
+      "name": "Kinder Lou'a",
+      "tagline": "Glazed with Creamy Italian White & Milk Chocolate",
+      "category": "Lou'a",
+      "badge": "Kids Love It",
+      "image": "/products/salankatia-kinder.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Crisp golden lou’a bites smothered in authentic Kinder Bueno hazelnut cream and melted milk chocolate ribbon.",
+      "tastingNotes": [
+        "Kinder Hazelnut Milk Cream",
+        "Warm Glazed Dumpling",
+        "Cocoa Dusting"
+      ],
+      "servingSuggestion": "Serve warm immediately after drizzling.",
+      "pairingNotes": "Chilled whole milk or hot chocolate.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 15
+    },
+    {
+      "id": "pistachio-belgium-hiba-cake",
+      "name": "Pistachio Belgium Chocolate Hiba Cake",
+      "tagline": "Sponge Cake Layered with Pistachio Cream & Belgian Ganache",
+      "category": "Hiba Cake",
+      "badge": "Celebration",
+      "image": "/products/heba-cake.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Delicate vanilla chiffon cake soaked in sweet laban milk, filled with Bronte pistachio mousse and frosted with Belgian dark chocolate fudge.",
+      "tastingNotes": [
+        "Chiffon Sponge",
+        "Belgian Chocolate Ganache",
+        "Pistachio Mousse Core"
+      ],
+      "servingSuggestion": "Slice cold with a warm knife for pristine layers.",
+      "pairingNotes": "Double espresso or Earl Grey black tea.",
+      "isHero": true,
+      "isAvailable": true,
+      "order": 16
+    },
+    {
+      "id": "pistachio-kinder-hiba-cake",
+      "name": "Pistachio Kinder Chocolate Hiba Cake",
+      "tagline": "Layered Sponge with Kinder Cream & Emerald Pistachios",
+      "category": "Hiba Cake",
+      "badge": "Bestseller",
+      "image": "/products/heba-cake.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Rich layers of moist sponge filled with Italian Kinder hazelnut cream, smothered with crushed green pistachios and white chocolate curls.",
+      "tastingNotes": [
+        "Kinder Hazelnut Cream",
+        "Crushed Pistachio Crust",
+        "Moist Dairy Sponge"
+      ],
+      "servingSuggestion": "Serve chilled for celebrations and family gatherings.",
+      "pairingNotes": "Cappuccino or iced cold brew.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 17
+    },
+    {
+      "id": "faza-pistachio-cake",
+      "name": "Faza Pistachio Cake",
+      "tagline": "Decadent Pistachio Sponge with Velvety Dairy Frosting",
+      "category": "Cakes",
+      "badge": "Artisan Reserve",
+      "image": "/products/fazea-chocola-lotus.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Signature Faza dessert cake made with finely ground roasted pistachios, soaked in cardamom milk, and frosted with whipped cream cheese laban.",
+      "tastingNotes": [
+        "Roasted Pistachio Flour",
+        "Cardamom Milk Soak",
+        "Whipped Laban Frosting"
+      ],
+      "servingSuggestion": "Serve slightly chilled.",
+      "pairingNotes": "Karak tea or French press coffee.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 18
+    },
+    {
+      "id": "faza-chocolate-cake",
+      "name": "Faza Chocolate Cake",
+      "tagline": "Intense Dark Belgian Fudge Cake with Cocoa Glaze",
+      "category": "Cakes",
+      "badge": "Rich Cocoa",
+      "image": "/products/fazea-chocola-cake.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Deep cocoa sponge infused with rich chocolate fudge syrup, covered in glossy Belgian chocolate glaze and topped with shaved truffles.",
+      "tastingNotes": [
+        "Dark Belgian Cocoa",
+        "Glossy Fudge Glaze",
+        "Shaved Chocolate Truffles"
+      ],
+      "servingSuggestion": "Warm slightly for 15 seconds to enjoy a molten center.",
+      "pairingNotes": "Cold whole milk or single-origin espresso.",
+      "isHero": true,
+      "isAvailable": true,
+      "order": 19
+    },
+    {
+      "id": "kunafa-pastry",
+      "name": "Kunafa Pastry",
+      "tagline": "Crispy Golden Kataifi Strands with Clotted Cream Heart",
+      "category": "Kunafa & Pastry",
+      "badge": "Traditional",
+      "image": "/products/koushri-box-cake.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Buttery kataifi pastry baked until golden and crispy, filled with fresh clotted ashta cream and soaked in fragrant orange blossom syrup.",
+      "tastingNotes": [
+        "Crisp Butter Kataifi",
+        "Clotted Ashta Cream",
+        "Orange Blossom Syrup"
+      ],
+      "servingSuggestion": "Serve warm right from the oven with crushed pistachios on top.",
+      "pairingNotes": "Black Ceylon tea or Arabic Qahwa.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 20
+    },
+    {
+      "id": "dubai-kunafa-chocolate",
+      "name": "Dubai Kunafa Chocolate",
+      "tagline": "Viral Dubai Chocolate Bar with Pistachio Kataifi Crunch",
+      "category": "Kunafa & Pastry",
+      "badge": "Viral Craze",
+      "image": "/products/chocolate-sphere-gift.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Thick Belgian milk chocolate shell loaded with crunchy butter-toasted kataifi pastry filaments, premium pistachio butter, and tahini.",
+      "tastingNotes": [
+        "Belgian Milk Chocolate",
+        "Crunchy Kataifi Filaments",
+        "Pure Pistachio Butter"
+      ],
+      "servingSuggestion": "Snap in half to reveal the vibrant emerald crunchy center.",
+      "pairingNotes": "Hot black coffee or unsweetened iced tea.",
+      "isHero": true,
+      "isAvailable": true,
+      "order": 21
+    },
+    {
+      "id": "kabsa-dessert",
+      "name": "Kabsa",
+      "tagline": "Traditional Sweet Rice Dessert with Nuts & Saffron Cream",
+      "category": "Kabsa",
+      "badge": "Heritage Dish",
+      "image": "/products/kabsa-dessert-tray.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Our sweet dessert interpretation of royal Kabsa — fragrant sweet basmati simmered in saffron milk cream, garnished with golden raisins, cashews, and silver varq.",
+      "tastingNotes": [
+        "Saffron Infused Milk",
+        "Cardamom Essence",
+        "Ghee-Roasted Cashews & Raisins"
+      ],
+      "servingSuggestion": "Serve warm in traditional brass bowls.",
+      "pairingNotes": "Saffron tea or warm water.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 22
+    },
+    {
+      "id": "aseera-pistachio",
+      "name": "Aseera Pistachio",
+      "tagline": "Rich Drinkable Pistachio Cream Nectar in Glass Bottle",
+      "category": "Traditional Desserts",
+      "badge": "Bottled Fresh",
+      "image": "/products/aseera-pistachio-bottle.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Sky Laban’s signature drinkable dessert: thick, chilled sweet cultured laban blended with 100% stone-ground pistachio paste.",
+      "tastingNotes": [
+        "Stone-Ground Pistachio",
+        "Drinkable Velvet Cream",
+        "Chilled Pure Milk"
+      ],
+      "servingSuggestion": "Shake well and drink cold straight from the bottle.",
+      "pairingNotes": "Warm brioche bun or tea cookies.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 23
+    },
+    {
+      "id": "aseera-lotus",
+      "name": "Aseera Lotus",
+      "tagline": "Chilled Drinkable Spiced Biscoff Cream Nectar",
+      "category": "Traditional Desserts",
+      "badge": "Bottled Fresh",
+      "image": "/products/aseera-lotus-bottle.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Creamy cold laban nectar blended with melted Belgian Biscoff spread and crushed spiced biscuit crumbs for a soothing treat on the go.",
+      "tastingNotes": [
+        "Belgian Biscoff Spread",
+        "Cultured Dairy Drink",
+        "Warm Cinnamon Note"
+      ],
+      "servingSuggestion": "Shake thoroughly before opening. Keep at 2°C.",
+      "pairingNotes": "Fresh pastries or morning croissants.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 24
+    },
+    {
+      "id": "sheer-khurma",
+      "name": "Sheer Khurma",
+      "tagline": "Royal Eid Vermicelli Pudding with Dates & Dry Fruits",
+      "category": "Traditional Desserts",
+      "badge": "Festive Classic",
+      "image": "/products/aseera-nutella-bottle.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Slow-simmered whole milk pudding loaded with roasted fine vermicelli, Medjool dates, chironji, pistachios, almonds, and aromatic green cardamom.",
+      "tastingNotes": [
+        "Medjool Date Sweetness",
+        "Roasted Vermicelli",
+        "Cardamom Saffron Milk"
+      ],
+      "servingSuggestion": "Serve warm or chilled according to your family tradition.",
+      "pairingNotes": "Karak tea or black coffee.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 25
+    },
+    {
+      "id": "bomb-dessert",
+      "name": "Bomb Dessert",
+      "tagline": "Exploding Chocolate Sphere with Hot Ganache Pour",
+      "category": "Special",
+      "badge": "Table Show",
+      "image": "/products/chocolate-sphere-gift.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "A theatrical chocolate dome filled with brownie bites, pistachio mousse, and vanilla gelato that melts open as piping hot Belgian chocolate is poured tableside.",
+      "tastingNotes": [
+        "Belgian Chocolate Shell",
+        "Warm Molten Ganache",
+        "Vanilla Gelato Center"
+      ],
+      "servingSuggestion": "Pour the hot chocolate sauce evenly over the sphere at the table.",
+      "pairingNotes": "Specialty double shot espresso.",
+      "isHero": true,
+      "isAvailable": true,
+      "order": 26
+    },
+    {
+      "id": "kashmira",
+      "name": "Kashmira",
+      "tagline": "Royal Kashmiri Saffron & Walnuts with Clotted Cream",
+      "category": "Special",
+      "badge": "Royal Reserve",
+      "image": "/products/chocolate-almond-bowl.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Rich cultured cream infused with authentic Kashmiri saffron threads, wildflower honey, and roasted Kashmiri mountain walnuts.",
+      "tastingNotes": [
+        "Kashmiri Mongra Saffron",
+        "Mountain Walnuts",
+        "Wild Mountain Honey"
+      ],
+      "servingSuggestion": "Serve chilled in porcelain dessert bowls.",
+      "pairingNotes": "Kashmiri Kahwa tea with green cardamom.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 27
+    },
+    {
+      "id": "de-paris-box",
+      "name": "De Paris Box",
+      "tagline": "Luxury Assorted Dessert Presentation Gift Box",
+      "category": "Special",
+      "badge": "Gift Box",
+      "image": "/products/koushri-box-cake.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "An elegant branded sky-blue presentation box with ribbon detailing, containing an assortment of Sky Laban’s finest mini creations for gifting.",
+      "tastingNotes": [
+        "Assorted Salankatia",
+        "Mini Koushiri Pots",
+        "Artisanal Nut Pastries"
+      ],
+      "servingSuggestion": "Keep refrigerated until gifting or serving.",
+      "pairingNotes": "Celebration drinks, coffees, and teas.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 28
+    }
+  ],
+  "categories": [
+    {
+      "id": "gulstha",
+      "name": "Gulstha",
+      "description": "Handcrafted Gulstha from Sky Laban.",
+      "order": 1,
+      "isActive": true
+    },
+    {
+      "id": "salankatia",
+      "name": "Salankatia",
+      "description": "Handcrafted Salankatia from Sky Laban.",
+      "order": 2,
+      "isActive": true
+    },
+    {
+      "id": "koushiri",
+      "name": "Koushiri",
+      "description": "Handcrafted Koushiri from Sky Laban.",
+      "order": 3,
+      "isActive": true
+    },
+    {
+      "id": "ruh-hayati",
+      "name": "Ruh Hayati",
+      "description": "Handcrafted Ruh Hayati from Sky Laban.",
+      "order": 4,
+      "isActive": true
+    },
+    {
+      "id": "lou-a",
+      "name": "Lou'a",
+      "description": "Handcrafted Lou'a from Sky Laban.",
+      "order": 5,
+      "isActive": true
+    },
+    {
+      "id": "hiba-cake",
+      "name": "Hiba Cake",
+      "description": "Handcrafted Hiba Cake from Sky Laban.",
+      "order": 6,
+      "isActive": true
+    },
+    {
+      "id": "cakes",
+      "name": "Cakes",
+      "description": "Handcrafted Cakes from Sky Laban.",
+      "order": 7,
+      "isActive": true
+    },
+    {
+      "id": "kunafa-pastry",
+      "name": "Kunafa & Pastry",
+      "description": "Handcrafted Kunafa & Pastry from Sky Laban.",
+      "order": 8,
+      "isActive": true
+    },
+    {
+      "id": "kabsa",
+      "name": "Kabsa",
+      "description": "Handcrafted Kabsa from Sky Laban.",
+      "order": 9,
+      "isActive": true
+    },
+    {
+      "id": "traditional-desserts",
+      "name": "Traditional Desserts",
+      "description": "Handcrafted Traditional Desserts from Sky Laban.",
+      "order": 10,
+      "isActive": true
+    },
+    {
+      "id": "special",
+      "name": "Special",
+      "description": "Handcrafted Special from Sky Laban.",
+      "order": 11,
+      "isActive": true
+    }
+  ],
+  "outlets": [
+    {
+      "id": "kondapur",
+      "name": "Kondapur Branch",
+      "city": "Kondapur",
+      "state": "Telangana",
+      "address": "Kothaguda X Road, Kondapur, Hyderabad, Telangana",
+      "status": "existing",
+      "mapsUrl": "https://maps.app.goo.gl/85jeEQsNrGLm9HQF6?g_st=ic",
+      "order": 1
+    },
+    {
+      "id": "shaikpet",
+      "name": "Shaikpet Branch",
+      "city": "Shaikpet",
+      "state": "Telangana",
+      "address": "Tolichowki - Gachibowli Main Rd, Shaikpet, Hyderabad, Telangana",
+      "status": "existing",
+      "mapsUrl": "https://maps.app.goo.gl/WrbnJdxuH2L8dWk39?g_st=ic",
+      "order": 2
+    },
+    {
+      "id": "raghavendra-colony",
+      "name": "Raghavendra Colony Branch",
+      "city": "Raghavendra Colony",
+      "state": "Telangana",
+      "address": "Raghavendra Colony, Main Commercial Hub, Telangana",
+      "status": "existing",
+      "mapsUrl": "https://maps.app.goo.gl/KE4uTSoGsLKtk9y59?g_st=ic",
+      "order": 3
+    },
+    {
+      "id": "santosh-nagar",
+      "name": "Santosh Nagar Branch",
+      "city": "Santosh Nagar",
+      "state": "Telangana",
+      "address": "Santosh Nagar Main Road, Hyderabad, Telangana",
+      "status": "existing",
+      "mapsUrl": "https://maps.google.com/?q=Sky+Laban+Santosh+Nagar",
+      "order": 4
+    },
+    {
+      "id": "kompally",
+      "name": "Kompally (Bahadurpally)",
+      "city": "Kompally",
+      "state": "Telangana",
+      "address": "Medchal Highway, Kompally / Bahadurpally, Hyderabad, Telangana",
+      "status": "existing",
+      "mapsUrl": "https://maps.google.com/?q=Sky+Laban+Kompally",
+      "order": 5
+    },
+    {
+      "id": "sangareddy",
+      "name": "Sangareddy Branch",
+      "city": "Sangareddy",
+      "state": "Telangana",
+      "address": "Main Commercial Center, Sangareddy, Telangana",
+      "status": "existing",
+      "mapsUrl": "https://maps.google.com/?q=Sky+Laban+Sangareddy",
+      "order": 6
+    },
+    {
+      "id": "ongole",
+      "name": "Ongole Branch",
+      "city": "Ongole",
+      "state": "Andhra Pradesh",
+      "address": "Kurnool Road, Near Collectorate, Ongole, Andhra Pradesh",
+      "status": "existing",
+      "mapsUrl": "https://maps.app.goo.gl/a3xPigdU7u8j1xZq8?g_st=ic",
+      "order": 7
+    },
+    {
+      "id": "nandyal",
+      "name": "Nandyal Branch",
+      "city": "Nandyal",
+      "state": "Andhra Pradesh",
+      "address": "Sanjeeva Nagar Main Road, Nandyal, Andhra Pradesh",
+      "status": "existing",
+      "mapsUrl": "https://maps.google.com/?q=Sky+Laban+Nandyal",
+      "order": 8
+    },
+    {
+      "id": "kadapa",
+      "name": "Kadapa Branch",
+      "city": "Kadapa",
+      "state": "Andhra Pradesh",
+      "address": "Main Road, Proddatur / Kadapa, Andhra Pradesh",
+      "status": "existing",
+      "mapsUrl": "https://maps.app.goo.gl/fKSo3cWBmCPqtsHa8?g_st=ic",
+      "order": 9
+    },
+    {
+      "id": "vellore",
+      "name": "Vellore Branch",
+      "city": "Vellore",
+      "state": "Tamil Nadu",
+      "address": "Katpadi Main Road, Vellore, Tamil Nadu",
+      "status": "existing",
+      "mapsUrl": "https://maps.google.com/?q=Sky+Laban+Vellore",
+      "order": 10
+    },
+    {
+      "id": "goa",
+      "name": "Goa Outlet",
+      "city": "Goa",
+      "state": "Goa",
+      "address": "Panaji City Center, Goa",
+      "status": "existing",
+      "mapsUrl": "https://maps.google.com/?q=Sky+Laban+Goa",
+      "order": 11
+    },
+    {
+      "id": "hyderabad-flagship",
+      "name": "Hyderabad Flagship",
+      "city": "Hyderabad",
+      "state": "Telangana",
+      "address": "Jubilee Hills / Banjara Hills Hub, Hyderabad, Telangana",
+      "status": "existing",
+      "mapsUrl": "https://maps.google.com/?q=Sky+Laban+Hyderabad",
+      "order": 12
+    },
+    {
+      "id": "warangal",
+      "name": "Warangal Hub",
+      "city": "Warangal",
+      "state": "Telangana",
+      "address": "Upcoming Prime Location, Warangal",
+      "status": "upcoming",
+      "order": 13
+    },
+    {
+      "id": "visakhapatnam",
+      "name": "Visakhapatnam Hub",
+      "city": "Visakhapatnam",
+      "state": "Andhra Pradesh",
+      "address": "Upcoming Beach Road Hub, Visakhapatnam",
+      "status": "upcoming",
+      "order": 14
+    },
+    {
+      "id": "vijayawada",
+      "name": "Vijayawada Center",
+      "city": "Vijayawada",
+      "state": "Andhra Pradesh",
+      "address": "Upcoming MG Road Center, Vijayawada",
+      "status": "upcoming",
+      "order": 15
+    },
+    {
+      "id": "guntur",
+      "name": "Guntur Hub",
+      "city": "Guntur",
+      "state": "Andhra Pradesh",
+      "address": "Upcoming Commercial Corridor, Guntur",
+      "status": "upcoming",
+      "order": 16
+    },
+    {
+      "id": "kurnool",
+      "name": "Kurnool Center",
+      "city": "Kurnool",
+      "state": "Andhra Pradesh",
+      "address": "Upcoming Highway Hub, Kurnool",
+      "status": "upcoming",
+      "order": 17
+    },
+    {
+      "id": "bengaluru",
+      "name": "Bengaluru Flagship",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "address": "Upcoming Indiranagar Cafe, Bengaluru",
+      "status": "upcoming",
+      "order": 18
+    },
+    {
+      "id": "chennai",
+      "name": "Chennai Hub",
+      "city": "Chennai",
+      "state": "Tamil Nadu",
+      "address": "Upcoming Anna Nagar Hub, Chennai",
+      "status": "upcoming",
+      "order": 19
+    },
+    {
+      "id": "kochi",
+      "name": "Kochi Cafe",
+      "city": "Kochi",
+      "state": "Kerala",
+      "address": "Upcoming Panampilly Nagar Cafe, Kochi",
+      "status": "upcoming",
+      "order": 20
+    }
+  ],
+  "reels": [
+    {
+      "id": "reel-01",
+      "number": "01",
+      "title": "Founder Message — Now Open in Kondapur",
+      "url": "https://www.instagram.com/p/DXXQr6XEhQx/?hl=en",
+      "image": "/images/reel_1.jpg",
+      "order": 1,
+      "isActive": true
+    },
+    {
+      "id": "reel-02",
+      "number": "02",
+      "title": "Hear it from the Owners — Franchise Story",
+      "url": "https://www.instagram.com/reel/DZ_5R_3ynJv/?hl=en",
+      "image": "/images/reel_2.jpg",
+      "order": 2,
+      "isActive": true
+    },
+    {
+      "id": "reel-03",
+      "number": "03",
+      "title": "Sky Laban is Now in Shaikpet!",
+      "url": "https://www.instagram.com/reel/DZKrKpTycXc/?hl=en",
+      "image": "/images/reel_3.jpg",
+      "order": 3,
+      "isActive": true
+    },
+    {
+      "id": "reel-04",
+      "number": "04",
+      "title": "Fallen in Love with Salankatia — Raghavendra Colony",
+      "url": "https://www.instagram.com/reel/DdYbdllTrwK/?hl=en",
+      "image": "/images/reel_4.jpg",
+      "order": 4,
+      "isActive": true
+    },
+    {
+      "id": "reel-05",
+      "number": "05",
+      "title": "Crafting Happiness Daily — Salankatia Scoop",
+      "url": "https://www.instagram.com/reel/DdV6_-hvJuZ/?hl=en",
+      "image": "/images/reel_5.jpg",
+      "order": 5,
+      "isActive": true
+    },
+    {
+      "id": "reel-06",
+      "number": "06",
+      "title": "Kadapa Sky Laban Review & Opening",
+      "url": "https://www.instagram.com/reel/DdVTC9kR043/?hl=en",
+      "image": "/images/reel_6.jpg",
+      "order": 6,
+      "isActive": true
+    },
+    {
+      "id": "reel-07",
+      "number": "07",
+      "title": "Owner Launch Message — Raghavendra Colony",
+      "url": "https://www.instagram.com/reel/DdELqzTyiHW/?hl=en",
+      "image": "/images/reel_7.jpg",
+      "order": 7,
+      "isActive": true
+    },
+    {
+      "id": "reel-08",
+      "number": "08",
+      "title": "Sky Laban Ongole Grand Experience",
+      "url": "https://www.instagram.com/reel/DbIjYlIocid/?hl=en",
+      "image": "/images/reel_8.jpg",
+      "order": 8,
+      "isActive": true
+    }
+  ],
+  "heroSlides": [
+    {
+      "id": "table-feast",
+      "desktopImage": "/hero/hero-table-feast-desktop-hd.jpg",
+      "mobileImage": "/hero/hero-table-feast-mobile-hd.jpg",
+      "alt": "Sky Laban Signature Egyptian Desserts Feast - Aseera, Salankatiya, Koushri, Fazea Chocola",
+      "desktopObjectPosition": "object-center",
+      "mobileObjectPosition": "object-center",
+      "order": 1,
+      "isActive": true
+    },
+    {
+      "id": "cafe-experience",
+      "desktopImage": "/hero/hero-cafe-experience-desktop-hd.jpg",
+      "mobileImage": "/hero/hero-cafe-experience-mobile-hd.jpg",
+      "alt": "Sky Laban Authentic Egyptian Desserts - A Taste Worth Coming Back For",
+      "desktopObjectPosition": "object-center",
+      "mobileObjectPosition": "object-center",
+      "order": 2,
+      "isActive": true
+    },
+    {
+      "id": "gift-presentation",
+      "desktopImage": "/hero/hero-gift-presentation-desktop.jpg",
+      "mobileImage": "/hero/hero-gift-presentation-mobile.jpg",
+      "alt": "Sky Laban Signature Dessert Bowls & Ribboned Blue Gift Box Presentation",
+      "desktopObjectPosition": "object-center",
+      "mobileObjectPosition": "object-center",
+      "order": 3,
+      "isActive": true
+    },
+    {
+      "id": "dessert-collection",
+      "desktopImage": "/hero/hero-dessert-collection-desktop.jpg",
+      "mobileImage": "/hero/hero-dessert-collection-mobile.jpg",
+      "alt": "Sky Laban Complete Artisanal Dessert Collection, Bowls, and Packaging",
+      "desktopObjectPosition": "object-center",
+      "mobileObjectPosition": "object-center",
+      "order": 4,
+      "isActive": true
+    }
+  ],
+  "content": {
+    "marqueeText": "SKY LABAN · PREMIUM · CREAMY · DREAMY",
+    "instagramProfileUrl": "https://www.instagram.com/sky_laban/?hl=en",
+    "contactPhone": "+1 234 567 890",
+    "contactEmail": "hello@skylaban.com",
+    "announcementText1": "Quality Products",
+    "announcementText2": "Premium Ingredients",
+    "announcementText3": "Loved by Families",
+    "franchiseHeadline": "Grow With Sky Laban",
+    "franchiseSubheadline": "Join our fast-growing dessert brand and bring world-class creamy experiences, iconic packaging, and loyal customers to your territory.",
+    "reelsHeading": "Moments of Pure Delight",
+    "reelsSubtext": "Discover our latest creations, behind-the-scenes moments and the sweet experiences of Sky Laban.",
+    "sectionVisibility": {
+      "hero": true,
+      "marquee": true,
+      "reels": true,
+      "products": true,
+      "story": true,
+      "franchise": true,
+      "outlets": true
+    },
+    "ourStoryJourney": "Alhamdulillah, from our first store in Shaikpet in April 2026, Sky Laban has grown into a family of 15 outlets. Every location reflects our commitment to quality, consistency, and sharing moments of pure delight with our customers.",
+    "firstStoreInfo": "April 2026 – First Store in Shaikpet",
+    "outletsCountInfo": "15 Outlets Across Hyderabad & Beyond"
+  },
+  "enquiries": [
+    {
+      "id": "enq-001",
+      "type": "franchise",
+      "name": "Kiran Kumar",
+      "email": "kiran.invest@gmail.com",
+      "phone": "+91 98480 12345",
+      "city": "Hyderabad",
+      "investmentBudget": "25-50 Lakhs",
+      "preferredLocation": "Gachibowli Financial District",
+      "message": "Interested in opening a flagship Sky Laban dessert lounge in Gachibowli high-street location.",
+      "status": "in_review",
+      "notes": "Followed up via call. Requested property dimensions.",
+      "createdAt": "2026-09-27T06:34:56.811Z"
+    },
+    {
+      "id": "enq-002",
+      "type": "contact",
+      "name": "Fatima Begum",
+      "email": "fatima.b@yahoo.com",
+      "phone": "+91 91234 56789",
+      "city": "Vijayawada",
+      "message": "Can we order a bulk De Paris Gift Box for a family wedding reception?",
+      "status": "new",
+      "createdAt": "2026-09-28T06:34:56.811Z"
+    }
+  ],
+  "orders": [
+    {
+      "id": "ord-1001",
+      "orderNumber": "SKL-94021",
+      "customerName": "Arjun Reddy",
+      "customerPhone": "+91 97000 88219",
+      "customerEmail": "arjun.reddy@example.com",
+      "outletName": "Kondapur Branch",
+      "items": [
+        {
+          "productId": "pistachio-lotus-salankatia",
+          "productName": "Pistachio Lotus Salankatia",
+          "quantity": 2
+        },
+        {
+          "productId": "dubai-kunafa-chocolate",
+          "productName": "Dubai Kunafa Chocolate",
+          "quantity": 1
+        }
+      ],
+      "status": "completed",
+      "createdAt": "2026-09-29T02:34:56.811Z"
+    },
+    {
+      "id": "ord-1002",
+      "orderNumber": "SKL-94022",
+      "customerName": "Sneha Patel",
+      "customerPhone": "+91 98220 54321",
+      "outletName": "Shaikpet Branch",
+      "items": [
+        {
+          "productId": "lotus-koushiri",
+          "productName": "Lotus Koushiri",
+          "quantity": 2
+        },
+        {
+          "productId": "aseera-pistachio",
+          "productName": "Aseera Pistachio",
+          "quantity": 3
+        }
+      ],
+      "status": "processing",
+      "createdAt": "2026-09-29T05:34:56.811Z"
+    }
+  ],
+  "users": [
+    {
+      "id": "user-admin-1",
+      "email": "admin@skylaban.com",
+      "passwordHash": "29a81db204b5a799e1fc1f90743bb5ea170a1f7360c7f1a9ec347db843f87ea5",
+      "name": "Sky Laban Admin",
+      "role": "Super Admin",
+      "createdAt": "2026-09-29T06:34:56.811Z"
+    }
+  ],
+  "settings": {
+    "brandName": "Sky Laban",
+    "tagline": "Creamy Happiness in Every Scoop",
+    "facebookUrl": "https://facebook.com/skylaban",
+    "instagramUrl": "https://www.instagram.com/sky_laban/?hl=en",
+    "youtubeUrl": "https://youtube.com/@skylaban",
+    "metaTitle": "Sky Laban — Artisanal Desserts, Salankatia & Egyptian Delights",
+    "metaDescription": "Indulge in authentic Salankatia, Koushiri, Hiba Cakes and artisanal dairy desserts crafted with Bronte pistachios and Belgian chocolate.",
+    "enableOrdering": true,
+    "maintenanceMode": false
+  },
+  "lastUpdated": "2026-09-29T07:34:18.541Z",
+  "founders": [
+    {
+      "id": "founder-akram",
+      "name": "B. Akram Ali Khan",
+      "title": "Founder & Chief Visionary",
+      "image": "/images/Founder1(1).png",
+      "description": "With a deep passion for premium desserts and a vision to create a brand that brings people together, B. Akram Ali Khan laid the foundation of Sky Laban. His commitment to quality, innovation, and customer happiness continues to guide the brand’s journey from our first outlet in Shaikpet to 15 outlets across Hyderabad and beyond.",
+      "order": 1,
+      "isActive": true
+    },
+    {
+      "id": "founder-aslam",
+      "name": "B. Aslam Ali Khan",
+      "title": "Co-Founder & Operations Leader",
+      "image": "/images/Founder2(1).png",
+      "description": "B. Aslam Ali Khan drives the operational excellence behind Sky Laban, ensuring consistent quality, great taste, and a delightful experience at every outlet. His dedication, hands-on approach, and strong focus on people and processes have been key to the brand’s growth and success.",
+      "order": 2,
+      "isActive": true
+    }
+  ]
+}

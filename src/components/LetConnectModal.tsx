@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, CheckCircle, Mail, Phone, MapPin, Sparkles } from "lucide-react";
+import { X, Send, CheckCircle, AlertCircle } from "lucide-react";
 
 interface LetConnectModalProps {
   isOpen: boolean;
@@ -11,10 +11,13 @@ interface LetConnectModalProps {
 
 export default function LetConnectModal({ isOpen, onClose }: LetConnectModalProps) {
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
+    city: "Hyderabad",
     subject: "Dessert Catering & Events",
     message: "",
   });
@@ -33,9 +36,34 @@ export default function LetConnectModal({ isOpen, onClose }: LetConnectModalProp
     };
   }, [isOpen, onClose]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setSubmitting(true);
+    setErrorMsg("");
+
+    try {
+      const res = await fetch("/api/enquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          city: formData.city,
+          type: "contact",
+          message: `Subject: ${formData.subject}. Message: ${formData.message}`,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to submit inquiry");
+      }
+      setSubmitted(true);
+    } catch {
+      setErrorMsg("Failed to send message. Please try again or call our hotline.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -59,7 +87,7 @@ export default function LetConnectModal({ isOpen, onClose }: LetConnectModalProp
         >
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
+            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -81,7 +109,7 @@ export default function LetConnectModal({ isOpen, onClose }: LetConnectModalProp
                   setSubmitted(false);
                   onClose();
                 }}
-                className="px-6 py-2.5 rounded-full bg-[#0754C9] text-white text-sm font-semibold hover:bg-[#0645B8]"
+                className="px-6 py-2.5 rounded-full bg-[#0754C9] text-white text-sm font-semibold hover:bg-[#0645B8] cursor-pointer"
               >
                 Done
               </button>
@@ -95,9 +123,16 @@ export default function LetConnectModal({ isOpen, onClose }: LetConnectModalProp
               <h3 className="text-2xl font-extrabold text-[#063B91] mb-2">
                 Let&apos;s Connect
               </h3>
-              <p className="text-xs sm:text-sm text-slate-600 mb-6">
+              <p className="text-xs sm:text-sm text-slate-600 mb-5">
                 Have a question about our creamy desserts, wholesale orders, or private catering? We’d love to hear from you.
               </p>
+
+              {errorMsg && (
+                <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -132,11 +167,12 @@ export default function LetConnectModal({ isOpen, onClose }: LetConnectModalProp
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Phone (Optional)
+                      Phone Number *
                     </label>
                     <input
                       type="tel"
-                      placeholder="+1 (555) 000-0000"
+                      required
+                      placeholder="+91 98765 43210"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0754C9] focus:ring-1 focus:ring-[#0754C9]"
@@ -144,17 +180,17 @@ export default function LetConnectModal({ isOpen, onClose }: LetConnectModalProp
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Inquiry Type
+                      Inquiry Subject
                     </label>
                     <select
                       value={formData.subject}
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0754C9] focus:ring-1 focus:ring-[#0754C9] text-slate-700"
                     >
-                      <option value="Dessert Catering & Events">Dessert Catering & Events</option>
-                      <option value="Product Inquiries & Feedback">Product Inquiries & Feedback</option>
-                      <option value="Wholesale & Bulk Supply">Wholesale & Bulk Supply</option>
-                      <option value="Press & Media">Press & Media</option>
+                      <option value="Dessert Catering & Events">Dessert Catering &amp; Events</option>
+                      <option value="Product Inquiries & Feedback">Product Inquiries &amp; Feedback</option>
+                      <option value="Wholesale & Bulk Supply">Wholesale &amp; Bulk Supply</option>
+                      <option value="Press & Media">Press &amp; Media</option>
                     </select>
                   </div>
                 </div>
@@ -175,10 +211,11 @@ export default function LetConnectModal({ isOpen, onClose }: LetConnectModalProp
 
                 <button
                   type="submit"
-                  className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-full bg-[#0754C9] hover:bg-[#0645B8] text-white font-semibold text-sm shadow-md transition-all cursor-pointer"
+                  disabled={submitting}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-full bg-[#0754C9] hover:bg-[#0645B8] text-white font-semibold text-sm shadow-md transition-all cursor-pointer disabled:opacity-60"
                 >
                   <Send className="w-4 h-4" />
-                  <span>Send Message</span>
+                  <span>{submitting ? "Sending..." : "Send Message"}</span>
                 </button>
               </form>
             </div>
