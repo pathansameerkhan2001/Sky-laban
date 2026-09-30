@@ -8,13 +8,15 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { email } = body;
 
-    if (!email || typeof email !== "string" || !email.includes("@")) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || typeof email !== "string" || !emailRegex.test(email.trim())) {
       return NextResponse.json(
         { error: "Please provide a valid email address." },
         { status: 400 }
       );
     }
 
+    const cleanEmail = email.trim().toLowerCase();
     const cookieStore = await cookies();
     const supabase = createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       cookies: {
@@ -31,15 +33,16 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Destination after user clicks email recovery link
-    const redirectTo = getAppUrl("/auth/callback?next=/admin/reset-password");
+    // Destination after user clicks email recovery link - dynamically derived from request
+    const origin = req.headers.get("origin") || req.nextUrl.origin || getAppUrl();
+    const redirectTo = `${origin}/auth/callback?next=/admin/reset-password`;
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+    const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
       redirectTo,
     });
 
     if (error) {
-      console.warn(`[Supabase Auth] resetPasswordForEmail notice for ${email.trim()}:`, error.message);
+      console.warn(`[Supabase Auth] resetPasswordForEmail notice for ${cleanEmail}:`, error.message);
       if (error.status === 429) {
         return NextResponse.json(
           { error: "Too many reset attempts. Please wait a few minutes before trying again." },

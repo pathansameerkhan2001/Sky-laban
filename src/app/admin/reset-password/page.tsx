@@ -29,9 +29,24 @@ export default function ResetPasswordPage() {
 
     async function checkRecoverySession() {
       try {
-        // 1. Check if user is currently authenticated via recovery session in cookies/storage
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        // 1. Direct code exchange if user landed directly on /admin/reset-password?code=...
+        if (typeof window !== "undefined") {
+          const urlParams = new URLSearchParams(window.location.search);
+          const code = urlParams.get("code");
+          if (code) {
+            const { data: exData, error: exErr } = await supabase.auth.exchangeCodeForSession(code);
+            if (!exErr && exData?.user) {
+              if (isMounted) {
+                setHasValidSession(true);
+                setVerifyingSession(false);
+              }
+              return;
+            }
+          }
+        }
 
+        // 2. Check if user is currently authenticated via recovery session in cookies/storage
+        const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           if (isMounted) {
             setHasValidSession(true);
@@ -40,7 +55,7 @@ export default function ResetPasswordPage() {
           return;
         }
 
-        // 2. Also listen for PASSWORD_RECOVERY event if hash fragment exists (#access_token=...)
+        // 3. Listen for PASSWORD_RECOVERY event if hash fragment exists (#access_token=...)
         const { data: authListener } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
           if (event === "PASSWORD_RECOVERY" || currentSession?.user) {
             if (isMounted) {
@@ -50,7 +65,7 @@ export default function ResetPasswordPage() {
           }
         });
 
-        // 3. Fallback: check getUser()
+        // 4. Fallback: check getUser()
         const { data: userData } = await supabase.auth.getUser();
         if (userData?.user) {
           if (isMounted) {
@@ -60,12 +75,12 @@ export default function ResetPasswordPage() {
           return;
         }
 
-        // Timeout to allow hash processing if needed
+        // Timeout to allow hash or token processing
         setTimeout(() => {
           if (isMounted) {
             setVerifyingSession(false);
           }
-        }, 1200);
+        }, 1500);
 
         return () => {
           authListener?.subscription.unsubscribe();
@@ -102,7 +117,32 @@ export default function ResetPasswordPage() {
     setLoading(true);
 
     try {
-      // 1. Try server API route first
+      // 1. Client-side update via Supabase browser client (handles both cookie and memory tokens)
+      const { error: clientUpdateError } = await supabase.auth.updateUser({
+        password,
+      });
+
+      if (!clientUpdateError) {
+        // Also sync server session if available
+        try {
+          await fetch("/api/auth/reset-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password }),
+          });
+        } catch {}
+
+        // Clear temporary recovery session so admin logs in cleanly
+        await supabase.auth.signOut();
+
+        setSuccess(true);
+        setTimeout(() => {
+          window.location.href = "/admin/login?reset=success";
+        }, 2500);
+        return;
+      }
+
+      // 2. Server API fallback if browser client encountered an issue
       const res = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -110,26 +150,20 @@ export default function ResetPasswordPage() {
       });
 
       if (res.ok) {
+        await supabase.auth.signOut();
         setSuccess(true);
         setTimeout(() => {
-          router.push("/admin/login");
-        }, 3000);
+          window.location.href = "/admin/login?reset=success";
+        }, 2500);
         return;
       }
 
-      // 2. Client-side fallback via Supabase browser client
-      const { error: clientUpdateError } = await supabase.auth.updateUser({
-        password,
-      });
-
-      if (clientUpdateError) {
-        throw new Error(clientUpdateError.message || "Failed to update password. Please request a new link.");
-      }
-
-      setSuccess(true);
-      setTimeout(() => {
-        router.push("/admin/login");
-      }, 3000);
+      const resData = await res.json().catch(() => ({}));
+      throw new Error(
+        clientUpdateError.message ||
+        resData.error ||
+        "Failed to update password. Your reset link may have expired or is invalid."
+      );
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to update password. Your reset link may have expired.");
     } finally {

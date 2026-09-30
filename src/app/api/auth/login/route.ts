@@ -4,9 +4,9 @@ import { cookies } from "next/headers";
 import { createToken, setAdminSessionCookie } from "@/lib/auth";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/lib/supabase/config";
 
-const ALLOWED_ADMIN_ROLES = ["admin", "super admin", "super_admin", "editor"];
+const ALLOWED_ADMIN_ROLES = ["admin", "super admin", "super_admin", "editor", "administrator"];
 const KNOWN_ADMIN_EMAILS = ["adnix.in@gmail.com"];
-const KNOWN_ADMIN_UUIDS = ["53177535-cbd5-4f02-b7c5-cec9acb4c6f6"];
+const KNOWN_ADMIN_UUIDS = ["53177535-cbd5-4f02-b7c5-ce9cabc4c6f6"];
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const cleanEmail = email.trim().toLowerCase();
     const cookieStore = await cookies();
     const pendingCookies: Array<{ name: string; value: string; options: any }> = [];
 
@@ -43,19 +44,21 @@ export async function POST(req: NextRequest) {
 
     // 1. Authenticate with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
+      email: cleanEmail,
       password,
     });
 
     if (authError || !authData.user) {
-      const errCode = (authError as any)?.code || (authError as any)?.status;
       const errMsg = authError?.message || "Invalid email or password.";
-      console.warn(`[Supabase Auth] Login failed for ${email.trim()}:`, errMsg);
+      console.warn(`[Supabase Auth] Login failed for ${cleanEmail}:`, errMsg);
 
-      let userFriendlyMessage = errMsg;
+      let userFriendlyMessage = "Invalid login credentials. Please check your email and password, or use Forgot Password to reset.";
       if (errMsg.toLowerCase().includes("invalid login credentials")) {
         userFriendlyMessage =
-          "Invalid login credentials. Please verify your password. If you recently created this account, ensure email confirmation is approved in the Supabase Dashboard.";
+          "Invalid login credentials. Please verify your email and password. If you forgot your password, click 'Forgot password?' below to reset it.";
+      } else if (errMsg.toLowerCase().includes("email not confirmed")) {
+        userFriendlyMessage =
+          "Your email address has not been confirmed yet. Please check your inbox or confirm it in the Supabase Dashboard.";
       }
 
       return NextResponse.json(
@@ -71,30 +74,41 @@ export async function POST(req: NextRequest) {
     let role = "admin";
     let displayName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Admin";
 
-    // A. Query database public.admin_users table by user.id (UUID)
+    // A. Query database public.admin_users table by user.id (UUID), id, and email
     try {
       const { data: byUserId } = await supabase
         .from("admin_users")
-        .select("id, user_id, display_name, role")
+        .select("id, user_id, email, display_name, role")
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (byUserId && ALLOWED_ADMIN_ROLES.includes(String(byUserId.role).toLowerCase())) {
+      if (byUserId && ALLOWED_ADMIN_ROLES.includes(String(byUserId.role).trim().toLowerCase())) {
         isAuthorized = true;
         role = byUserId.role || role;
         displayName = byUserId.display_name || displayName;
       } else {
-        // Also check if id column in admin_users holds the user's UUID
         const { data: byId } = await supabase
           .from("admin_users")
-          .select("id, user_id, display_name, role")
+          .select("id, user_id, email, display_name, role")
           .eq("id", user.id)
           .maybeSingle();
 
-        if (byId && ALLOWED_ADMIN_ROLES.includes(String(byId.role).toLowerCase())) {
+        if (byId && ALLOWED_ADMIN_ROLES.includes(String(byId.role).trim().toLowerCase())) {
           isAuthorized = true;
           role = byId.role || role;
           displayName = byId.display_name || displayName;
+        } else if (user.email) {
+          const { data: byEmail } = await supabase
+            .from("admin_users")
+            .select("id, user_id, email, display_name, role")
+            .eq("email", user.email.toLowerCase().trim())
+            .maybeSingle();
+
+          if (byEmail && ALLOWED_ADMIN_ROLES.includes(String(byEmail.role).trim().toLowerCase())) {
+            isAuthorized = true;
+            role = byEmail.role || role;
+            displayName = byEmail.display_name || displayName;
+          }
         }
       }
     } catch (err) {
@@ -103,7 +117,7 @@ export async function POST(req: NextRequest) {
 
     // B. Check user metadata / app_metadata
     if (!isAuthorized) {
-      const appRole = String(user.app_metadata?.role || user.user_metadata?.role || "").toLowerCase();
+      const appRole = String(user.app_metadata?.role || user.user_metadata?.role || "").trim().toLowerCase();
       if (ALLOWED_ADMIN_ROLES.includes(appRole)) {
         isAuthorized = true;
         role = user.app_metadata?.role || user.user_metadata?.role || "admin";
@@ -119,7 +133,7 @@ export async function POST(req: NextRequest) {
       const allAllowedEmails = [...KNOWN_ADMIN_EMAILS, ...envEmails];
 
       if (
-        (user.email && allAllowedEmails.includes(user.email.toLowerCase())) ||
+        (user.email && allAllowedEmails.includes(user.email.toLowerCase().trim())) ||
         KNOWN_ADMIN_UUIDS.includes(user.id)
       ) {
         isAuthorized = true;

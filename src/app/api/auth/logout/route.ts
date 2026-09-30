@@ -31,5 +31,7 @@ export async function POST() {
   }
 
   await clearAdminSessionCookie();
-  return NextResponse.json({ success: true, message: "Logged out successfully" });
+  const response = NextResponse.json({ success: true, message: "Logged out successfully" });
+  response.cookies.delete("skylaban_admin_session");
+  return response;
 }

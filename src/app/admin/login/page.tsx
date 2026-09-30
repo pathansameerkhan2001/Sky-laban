@@ -1,19 +1,35 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Lock, Mail, Eye, EyeOff, ShieldCheck, ArrowRight, AlertCircle } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Lock, Mail, Eye, EyeOff, ShieldCheck, ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
 import { getMediaUrl } from "@/lib/media";
 
-export default function AdminLoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const resetSuccess = searchParams.get("reset") === "success";
+  const errorParam = searchParams.get("error");
+  const redirectParam = searchParams.get("redirect");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(() => {
+    if (errorParam === "unauthorized") {
+      return "Access restricted: Your account is authenticated in Supabase but lacks administrator privileges.";
+    }
+    if (errorParam === "auth-code-error") {
+      return "The recovery or authentication link has expired or is invalid. Please request a new link.";
+    }
+    if (errorParam === "session_expired") {
+      return "Your session has expired. Please sign in again.";
+    }
+    return null;
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +45,7 @@ export default function AdminLoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), password }),
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
       });
 
       const data = await res.json();
@@ -37,8 +53,13 @@ export default function AdminLoginPage() {
         throw new Error(data.error || "Authentication failed. Access restricted to authorized admins.");
       }
 
-      // Successful login -> Full redirect to /admin to ensure fresh cookie evaluation
-      window.location.href = "/admin";
+      // Safe redirect: use redirect parameter if valid, otherwise go to /admin
+      const target =
+        redirectParam && redirectParam.startsWith("/admin") && !redirectParam.startsWith("//")
+          ? redirectParam
+          : "/admin";
+
+      window.location.href = target;
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -80,6 +101,14 @@ export default function AdminLoginPage() {
             Sign in to manage your website content.
           </p>
         </div>
+
+        {/* Password Reset Success Banner */}
+        {resetSuccess && (
+          <div className="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+            <span>Your password has been successfully updated! Please sign in with your new password.</span>
+          </div>
+        )}
 
         {/* Error Alert */}
         {error && (
@@ -180,3 +209,18 @@ export default function AdminLoginPage() {
     </div>
   );
 }
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen w-full bg-[#EAF6FF] flex items-center justify-center">
+          <div className="w-8 h-8 border-3 border-[#0754C9] border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
+  );
+}
+

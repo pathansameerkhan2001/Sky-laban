@@ -50,8 +50,11 @@ export default function AdminLayoutClient({ children }: AdminLayoutClientProps) 
   const [loading, setLoading] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // If on login page, render children directly without admin shell
-  const isLoginPage = pathname === "/admin/login";
+  // Public authentication pages that should NOT require an active session or render the admin dashboard shell
+  const isAuthPage =
+    pathname === "/admin/login" ||
+    pathname === "/admin/forgot-password" ||
+    pathname === "/admin/reset-password";
 
   // Close profile dropdown on outside click
   useEffect(() => {
@@ -65,7 +68,7 @@ export default function AdminLayoutClient({ children }: AdminLayoutClientProps) 
   }, []);
 
   useEffect(() => {
-    if (isLoginPage) {
+    if (isAuthPage) {
       setLoading(false);
       return;
     }
@@ -89,7 +92,7 @@ export default function AdminLayoutClient({ children }: AdminLayoutClientProps) 
         router.push("/admin/login");
         setLoading(false);
       });
-  }, [pathname, isLoginPage, router]);
+  }, [pathname, isAuthPage, router]);
 
   const handleLogout = async () => {
     try {
@@ -102,7 +105,7 @@ export default function AdminLayoutClient({ children }: AdminLayoutClientProps) 
     }
   };
 
-  if (isLoginPage) {
+  if (isAuthPage) {
     return <>{children}</>;
   }
 

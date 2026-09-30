@@ -24,16 +24,16 @@ async function isAuthorizedAdmin(supabase: any, user: any): Promise<boolean> {
     .filter(Boolean);
 
   const allAllowedEmails = ["adnix.in@gmail.com", ...allowedEmails];
-  const knownAdminUuids = ["53177535-cbd5-4f02-b7c5-cec9acb4c6f6"];
+  const knownAdminUuids = ["53177535-cbd5-4f02-b7c5-ce9cabc4c6f6"];
 
   if (
-    (user.email && allAllowedEmails.includes(user.email.toLowerCase())) ||
+    (user.email && allAllowedEmails.includes(user.email.toLowerCase().trim())) ||
     knownAdminUuids.includes(user.id)
   ) {
     return true;
   }
 
-  // 3. Query public.admin_users table in Supabase by UUID (user_id or id)
+  // 3. Query public.admin_users table in Supabase by UUID (user_id or id) and email
   try {
     const { data: byUserId } = await supabase
       .from("admin_users")
@@ -41,7 +41,7 @@ async function isAuthorizedAdmin(supabase: any, user: any): Promise<boolean> {
       .eq("user_id", user.id)
       .maybeSingle();
 
-    if (byUserId && ALLOWED_ADMIN_ROLES.includes(String(byUserId.role).toLowerCase())) {
+    if (byUserId && ALLOWED_ADMIN_ROLES.includes(String(byUserId.role).trim().toLowerCase())) {
       return true;
     }
 
@@ -51,12 +51,24 @@ async function isAuthorizedAdmin(supabase: any, user: any): Promise<boolean> {
       .eq("id", user.id)
       .maybeSingle();
 
-    if (byId && ALLOWED_ADMIN_ROLES.includes(String(byId.role).toLowerCase())) {
+    if (byId && ALLOWED_ADMIN_ROLES.includes(String(byId.role).trim().toLowerCase())) {
       return true;
     }
+
+    if (user.email) {
+      const { data: byEmail } = await supabase
+        .from("admin_users")
+        .select("role")
+        .eq("email", user.email.toLowerCase().trim())
+        .maybeSingle();
+
+      if (byEmail && ALLOWED_ADMIN_ROLES.includes(String(byEmail.role).trim().toLowerCase())) {
+        return true;
+      }
+    }
   } catch (err) {
-    // If table doesn't exist yet, we don't crash
-    console.warn("admin_users table check notice:", err);
+    // If table query encounters an issue, gracefully fall back
+    console.warn("admin_users table check notice in middleware:", err);
   }
 
   return false;

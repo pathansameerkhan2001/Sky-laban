@@ -53,6 +53,16 @@ export async function GET() {
           if (byId) {
             displayName = byId.display_name || displayName;
             role = byId.role || role;
+          } else if (user.email) {
+            const { data: byEmail } = await supabase
+              .from("admin_users")
+              .select("display_name, role")
+              .eq("email", user.email.toLowerCase().trim())
+              .maybeSingle();
+            if (byEmail) {
+              displayName = byEmail.display_name || displayName;
+              role = byEmail.role || role;
+            }
           }
         }
       } catch {

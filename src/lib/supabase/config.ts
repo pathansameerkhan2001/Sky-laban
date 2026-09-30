@@ -33,11 +33,24 @@ export const PRODUCTION_URL =
   process.env.NEXT_PUBLIC_PRODUCTION_URL || "https://sky-laban-phi.vercel.app";
 
 /**
- * Returns the canonical application URL based on current environment
+ * Returns the canonical application URL based on current environment or client origin
  */
-export function getAppUrl(path: string = ""): string {
-  const isProd = process.env.NODE_ENV === "production";
-  const baseUrl = isProd ? PRODUCTION_URL : SITE_URL;
+export function getAppUrl(path: string = "", originOverride?: string): string {
+  let baseUrl = SITE_URL;
+
+  if (originOverride) {
+    baseUrl = originOverride;
+  } else if (typeof window !== "undefined" && window.location.origin) {
+    baseUrl = window.location.origin;
+  } else if (process.env.VERCEL_URL || process.env.NEXT_PUBLIC_VERCEL_URL) {
+    const vUrl = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_VERCEL_URL || "";
+    baseUrl = vUrl.startsWith("http") ? vUrl : `https://${vUrl}`;
+  } else if (process.env.NODE_ENV === "production" && !process.env.IS_LOCAL) {
+    baseUrl = PRODUCTION_URL;
+  } else {
+    baseUrl = process.env.NEXT_PUBLIC_SITE_URL || SITE_URL;
+  }
+
   const cleanPath = path ? (path.startsWith("/") ? path : `/${path}`) : "";
   return `${baseUrl.replace(/\/$/, "")}${cleanPath}`;
 }
