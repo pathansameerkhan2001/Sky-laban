@@ -198,7 +198,7 @@ export default function Products({ selectedCategory, onSelectCategory }: Product
       <div className="absolute top-0 right-1/4 w-[450px] h-[450px] bg-[#43B8F2]/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 left-1/4 w-[450px] h-[450px] bg-[#0754C9]/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="w-full max-w-[1760px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-12 relative z-10">
         
         {/* ================= 1. SECTION HEADER (Matching Reference Image 2) ================= */}
         <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
@@ -355,7 +355,7 @@ export default function Products({ selectedCategory, onSelectCategory }: Product
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-5 lg:gap-6 mb-10 sm:mb-12"
+                className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3.5 sm:gap-5 lg:gap-6 mb-10 sm:mb-12"
               >
                 {displayedProducts.map((prod) => (
                   <div
@@ -380,7 +380,7 @@ export default function Products({ selectedCategory, onSelectCategory }: Product
                           src={getMediaUrl(prod.image || "/products/salankatia-nutella-lotus.jpg")}
                           alt={prod.name}
                           fill
-                          sizes="(max-width: 640px) 180px, (max-width: 1024px) 280px, 320px"
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1536px) 25vw, 20vw"
                           className="object-contain p-1 sm:p-2 transition-transform duration-300 ease-out group-hover:scale-105 drop-shadow-[0_6px_16px_rgba(7,84,201,0.18)]"
                           loading="lazy"
                         />
@@ -442,7 +442,7 @@ export default function Products({ selectedCategory, onSelectCategory }: Product
                 <div
                   key={`${prod.id}-${idx}`}
                   onClick={() => setSelectedProduct(prod)}
-                  className="group relative bg-white rounded-2xl sm:rounded-3xl border border-[#DDF5FF] hover:border-[#0754C9]/40 shadow-[0_8px_24px_rgba(7,84,201,0.06)] hover:shadow-[0_16px_36px_rgba(7,84,201,0.16)] transition-all duration-300 flex flex-col overflow-hidden text-left cursor-pointer hover:-translate-y-1.5 shrink-0 w-[210px] sm:w-[250px] lg:w-[270px]"
+                  className="group relative bg-white rounded-2xl sm:rounded-3xl border border-[#DDF5FF] hover:border-[#0754C9]/40 shadow-[0_8px_24px_rgba(7,84,201,0.06)] hover:shadow-[0_16px_36px_rgba(7,84,201,0.16)] transition-all duration-300 flex flex-col overflow-hidden text-left cursor-pointer hover:-translate-y-1.5 shrink-0 w-[220px] sm:w-[260px] md:w-[280px] lg:w-[310px]"
                 >
                   {/* Top Accent Gradient Line */}
                   <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#43B8F2] via-[#0754C9] to-[#063B91] opacity-0 group-hover:opacity-100 transition-opacity z-20" />

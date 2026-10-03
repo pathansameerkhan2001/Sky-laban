@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles, ArrowRight } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { getMediaUrl } from "@/lib/media";
 
-interface HeroSlide {
+export interface HeroSlide {
   id: string;
   desktopImage: string;
   mobileImage: string;
@@ -14,7 +15,7 @@ interface HeroSlide {
   mobileObjectPosition: string;
 }
 
-const HERO_SLIDES: HeroSlide[] = [
+const DEFAULT_HERO_SLIDES: HeroSlide[] = [
   {
     id: "table-feast",
     desktopImage: "/hero/hero-table-feast-desktop-hd.jpg",
@@ -50,18 +51,42 @@ const HERO_SLIDES: HeroSlide[] = [
 ];
 
 export default function Hero() {
+  const [slides, setSlides] = useState<HeroSlide[]>(DEFAULT_HERO_SLIDES);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
 
-  const handleNext = useCallback(() => {
-    setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+  // Load custom hero slides if available from Supabase / public data
+  useEffect(() => {
+    let isMounted = true;
+    async function loadHeroData() {
+      try {
+        const res = await fetch("/api/public-data");
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data?.heroSlides) && data.heroSlides.length > 0 && isMounted) {
+            setSlides(data.heroSlides);
+          }
+        }
+      } catch (err) {
+        console.warn("Using default hero slides:", err);
+      }
+    }
+    loadHeroData();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
+  const handleNext = useCallback(() => {
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
+  }, [slides.length]);
+
   const handlePrev = useCallback(() => {
-    setCurrentSlide((prev) => (prev === 0 ? HERO_SLIDES.length - 1 : prev - 1));
-  }, []);
+    setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
+  }, [slides.length]);
 
   // Auto-slide every 5.5s (pauses on interaction/hover)
   useEffect(() => {
@@ -113,16 +138,16 @@ export default function Hero() {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className="hero relative w-full overflow-hidden bg-[#35AFF2] select-none focus:outline-none aspect-[16/10] sm:aspect-[16/9] md:aspect-auto md:h-[68vh] lg:h-[75vh] min-h-[260px] sm:min-h-[360px] md:min-h-[500px] max-h-[820px]"
+      className="hero relative w-full overflow-hidden bg-[#063B91] select-none focus:outline-none h-[68vh] sm:h-[72vh] md:h-[76vh] lg:h-[82vh] min-h-[460px] max-h-[820px]"
     >
-      {/* Slides Track */}
+      {/* Slides Background Track */}
       <div className="relative w-full h-full">
-        {HERO_SLIDES.map((slide, idx) => {
+        {slides.map((slide, idx) => {
           const isActive = currentSlide === idx;
 
           return (
             <div
-              key={slide.id}
+              key={slide.id || idx}
               aria-hidden={!isActive}
               className={`absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out ${
                 isActive
@@ -134,25 +159,25 @@ export default function Hero() {
               <div className="hidden md:block relative w-full h-full">
                 <Image
                   src={getMediaUrl(slide.desktopImage)}
-                  alt={slide.alt}
+                  alt={slide.alt || "Sky Laban Signature Desserts"}
                   fill
                   priority={idx === 0}
                   loading={idx === 0 ? "eager" : "lazy"}
                   sizes="100vw"
-                  className={`w-full h-full object-cover ${slide.desktopObjectPosition}`}
+                  className={`w-full h-full object-cover ${slide.desktopObjectPosition || "object-center"}`}
                 />
               </div>
 
               {/* MOBILE HERO VIEW (Hidden on Desktop) */}
               <div className="block md:hidden relative w-full h-full">
                 <Image
-                  src={getMediaUrl(slide.mobileImage)}
-                  alt={slide.alt}
+                  src={getMediaUrl(slide.mobileImage || slide.desktopImage)}
+                  alt={slide.alt || "Sky Laban Signature Desserts"}
                   fill
                   priority={idx === 0}
                   loading={idx === 0 ? "eager" : "lazy"}
                   sizes="100vw"
-                  className={`w-full h-full object-cover ${slide.mobileObjectPosition}`}
+                  className={`w-full h-full object-cover ${slide.mobileObjectPosition || "object-center"}`}
                 />
               </div>
             </div>
@@ -160,11 +185,72 @@ export default function Hero() {
         })}
       </div>
 
+      {/* Cinematic Contrast Overlay (Adaptive for Desktop & Mobile) */}
+      <div
+        className="absolute inset-0 z-15 pointer-events-none bg-gradient-to-t from-black/85 via-black/45 to-black/20 md:bg-gradient-to-r md:from-black/85 md:via-black/50 md:to-transparent"
+        aria-hidden="true"
+      />
+
+      {/* Foreground Hero Text & Interaction Overlay */}
+      <div className="absolute inset-0 z-20 flex flex-col justify-end md:justify-center px-5 sm:px-8 md:px-12 lg:px-16 xl:px-20 pb-12 sm:pb-14 md:pb-0 pointer-events-none">
+        <div className="max-w-2xl text-left pointer-events-auto">
+          {/* Eyebrow Badge */}
+          <motion.div
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white text-[10px] sm:text-xs font-black tracking-widest uppercase mb-3 sm:mb-4 shadow-sm"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#43B8F2]" />
+            <span>Authentic Egyptian &amp; Middle Eastern Desserts</span>
+          </motion.div>
+
+          {/* Main Headline */}
+          <motion.h1
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-3xl sm:text-5xl md:text-6xl lg:text-[66px] font-black text-white tracking-tight leading-[1.08] drop-shadow-md"
+          >
+            Creamy Happiness
+            <span className="block font-serif italic font-normal text-[#43B8F2] text-2xl sm:text-4xl md:text-5xl lg:text-[54px] mt-1 sm:mt-1.5">
+              in Every Scoop
+            </span>
+          </motion.h1>
+
+          {/* Supporting Text */}
+          <motion.p
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="text-white/90 text-xs sm:text-sm md:text-base lg:text-lg max-w-xl font-normal leading-relaxed drop-shadow-sm mt-2.5 sm:mt-4 line-clamp-3 sm:line-clamp-none"
+          >
+            Indulge in artisanal dessert perfection — handcrafted with slow-churned farm dairy, rich Nutella, spiced Lotus, and pure Bronte pistachios.
+          </motion.p>
+
+          {/* Minimal Interaction: Explore Our Products */}
+          <motion.div
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="mt-5 sm:mt-7 flex items-center gap-3"
+          >
+            <a
+              href="#products"
+              className="group inline-flex items-center gap-2.5 px-6 sm:px-8 py-3 sm:py-3.5 rounded-full bg-[#0754C9] hover:bg-white text-white hover:text-[#063B91] font-bold text-xs sm:text-sm shadow-[0_8px_25px_rgba(7,84,201,0.4)] hover:shadow-[0_10px_30px_rgba(255,255,255,0.3)] transition-all duration-300 hover:scale-103 active:scale-98 cursor-pointer"
+            >
+              <span>Explore Our Products</span>
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1 text-white group-hover:text-[#063B91]" />
+            </a>
+          </motion.div>
+        </div>
+      </div>
+
       {/* CAROUSEL NAVIGATION: Previous Button (Frosted Pill) */}
       <button
         onClick={handlePrev}
         aria-label="Previous slide"
-        className="absolute left-2.5 sm:left-6 md:left-8 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/85 hover:bg-white text-[#0754C9] shadow-[0_4px_16px_rgba(7,84,201,0.18)] border border-white/80 flex items-center justify-center transition-all duration-200 hover:scale-108 active:scale-95 cursor-pointer"
+        className="absolute left-2.5 sm:left-6 md:left-8 top-1/2 -translate-y-1/2 z-25 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/85 hover:bg-white text-[#0754C9] shadow-[0_4px_16px_rgba(0,0,0,0.25)] border border-white/80 flex items-center justify-center transition-all duration-200 hover:scale-108 active:scale-95 cursor-pointer"
       >
         <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 stroke-[2.5]" />
       </button>
@@ -173,7 +259,7 @@ export default function Hero() {
       <button
         onClick={handleNext}
         aria-label="Next slide"
-        className="absolute right-2.5 sm:right-6 md:right-8 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/85 hover:bg-white text-[#0754C9] shadow-[0_4px_16px_rgba(7,84,201,0.18)] border border-white/80 flex items-center justify-center transition-all duration-200 hover:scale-108 active:scale-95 cursor-pointer"
+        className="absolute right-2.5 sm:right-6 md:right-8 top-1/2 -translate-y-1/2 z-25 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/85 hover:bg-white text-[#0754C9] shadow-[0_4px_16px_rgba(0,0,0,0.25)] border border-white/80 flex items-center justify-center transition-all duration-200 hover:scale-108 active:scale-95 cursor-pointer"
       >
         <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6 stroke-[2.5]" />
       </button>
@@ -182,22 +268,22 @@ export default function Hero() {
       <div
         role="tablist"
         aria-label="Carousel Slides"
-        className="absolute bottom-2.5 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-white/50 backdrop-blur-md border border-white/60 shadow-sm"
+        className="absolute bottom-2.5 sm:bottom-4 left-1/2 -translate-x-1/2 z-25 flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/30 shadow-sm"
       >
-        {HERO_SLIDES.map((slide, idx) => {
+        {slides.map((slide, idx) => {
           const isActive = currentSlide === idx;
 
           return (
             <button
-              key={slide.id}
+              key={slide.id || idx}
               role="tab"
               aria-selected={isActive}
               aria-label={`Go to slide ${idx + 1}`}
               onClick={() => setCurrentSlide(idx)}
               className={`rounded-full transition-all duration-300 cursor-pointer ${
                 isActive
-                  ? "w-5 sm:w-7 h-1.5 sm:h-2 bg-[#0754C9]"
-                  : "w-1.5 sm:w-2 h-1.5 sm:h-2 bg-slate-300 hover:bg-[#0754C9]/60"
+                  ? "w-5 sm:w-7 h-1.5 sm:h-2 bg-[#43B8F2]"
+                  : "w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white/50 hover:bg-white/90"
               }`}
             />
           );

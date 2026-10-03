@@ -17,7 +17,7 @@ export async function GET() {
   let outlets = getDbOutlets();
   let products = getDbProducts();
   const content = getDbContent();
-  const heroSlides = getDbHeroSlides();
+  let heroSlides = getDbHeroSlides();
 
   // Retrieve from Supabase if configured and tables populated
   if (isSupabaseConfigured()) {
@@ -107,6 +107,48 @@ export async function GET() {
             order: p.display_order || 1,
           };
         });
+      }
+
+      // 5. Outlets
+      const { data: supaOutlets, error: outErr } = await supabase
+        .from("outlets")
+        .select("*")
+        .eq("is_published", true)
+        .order("display_order", { ascending: true });
+
+      if (!outErr && Array.isArray(supaOutlets) && supaOutlets.length > 0) {
+        outlets = supaOutlets.map((o: any) => ({
+          id: o.id,
+          name: o.name,
+          city: o.city,
+          state: o.state || "Telangana",
+          address: o.address,
+          status: o.status || "existing",
+          mapsUrl: o.map_url || o.maps_url,
+        }));
+      }
+
+      // 6. Hero Slides
+      const { data: supaHero, error: heroErr } = await supabase
+        .from("hero_slides")
+        .select("*")
+        .eq("is_published", true)
+        .order("display_order", { ascending: true });
+
+      if (!heroErr && Array.isArray(supaHero) && supaHero.length > 0) {
+        heroSlides = supaHero.map((s: any) => ({
+          id: s.id,
+          title: s.title || "Sky Laban",
+          subtitle: s.subtitle || "Authentic Egyptian Desserts",
+          image: s.image_url || s.desktop_image_url || "/hero/hero-table-feast-desktop-hd.jpg",
+          desktopImage: s.desktop_image_url || s.image_url || "/hero/hero-table-feast-desktop-hd.jpg",
+          mobileImage: s.mobile_image_url || s.image_url || "/hero/hero-table-feast-mobile-hd.jpg",
+          alt: s.title || s.alt_text || "Sky Laban Signature Desserts",
+          desktopObjectPosition: "object-center",
+          mobileObjectPosition: "object-center",
+          order: s.display_order || 1,
+          isActive: s.is_published ?? true,
+        }));
       }
     } catch (err) {
       console.warn("Notice: Using local store for public data fallback:", err);

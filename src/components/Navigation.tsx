@@ -165,21 +165,7 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
                 </AnimatePresence>
               </div>
 
-              {/* Drinks */}
-              <div className="relative">
-                <a
-                  href="#drinks"
-                  onClick={() => setActiveLink("Drinks")}
-                  className={`relative font-semibold text-sm lg:text-[15px] transition-colors py-1 block ${
-                    activeLink === "Drinks" ? "text-[#0754C9]" : "text-[#1c3f68] hover:text-[#0754C9]"
-                  }`}
-                >
-                  Drinks
-                  {activeLink === "Drinks" && (
-                    <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-[#0754C9] rounded-full mx-auto w-5" />
-                  )}
-                </a>
-              </div>
+
 
               {/* Founders */}
               <div className="relative">
@@ -247,19 +233,7 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
                 <span>Let Connect</span>
               </button>
 
-              {/* Admin Login Icon Button */}
-              <Link
-                href="/admin/login"
-                className="group relative p-2 lg:p-2.5 rounded-full bg-white hover:bg-[#0754C9] text-[#0754C9] hover:text-white border border-[#DDF5FF] hover:border-[#0754C9] shadow-xs hover:shadow-md transition-all duration-200 flex items-center justify-center cursor-pointer"
-                title="Admin Login"
-                aria-label="Admin Login"
-              >
-                <ShieldCheck className="w-4 h-4 stroke-[2.2] transition-transform group-hover:scale-110" />
-                {/* Tooltip */}
-                <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#063B91] px-2 py-0.5 text-[10px] font-bold text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100 z-50">
-                  Admin Login
-                </span>
-              </Link>
+
             </div>
           </div>
 
@@ -296,16 +270,8 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
               </a>
             </div>
 
-            {/* Right: Action Icons (Admin Login + Let Connect) */}
-            <div className="w-18 flex items-center justify-end gap-1.5 shrink-0">
-              <Link
-                href="/admin/login"
-                className="w-8 h-8 rounded-full bg-white border border-[#DDF5FF] text-[#0754C9] hover:bg-[#0754C9] hover:text-white flex items-center justify-center shadow-xs active:scale-95 transition-all"
-                aria-label="Admin Login"
-                title="Admin Login"
-              >
-                <ShieldCheck className="w-4 h-4 stroke-[2.2]" />
-              </Link>
+            {/* Right: Action Icon (Let Connect) */}
+            <div className="w-10 flex items-center justify-end shrink-0">
               <button
                 onClick={() => {
                   if (onOpenConnectModal) {
@@ -358,13 +324,7 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
                 >
                   Products &amp; Desserts
                 </a>
-                <a
-                  href="#drinks"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="px-3.5 py-2.5 text-sm font-semibold text-slate-700 hover:text-[#0754C9] hover:bg-[#EBF5FE]/40 rounded-xl transition-colors"
-                >
-                  Drinks &amp; Elixirs
-                </a>
+
                 <a
                   href="#our-story"
                   onClick={() => setMobileMenuOpen(false)}
@@ -417,14 +377,6 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
                     <span>Let Connect</span>
                   </button>
 
-                  <Link
-                    href="/admin/login"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors"
-                  >
-                    <ShieldCheck className="w-4 h-4 text-[#0754C9]" />
-                    <span>Admin Login</span>
-                  </Link>
                 </div>
               </div>
             </motion.div>

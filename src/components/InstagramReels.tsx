@@ -201,6 +201,8 @@ export default function InstagramReels() {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Anchor for #reels navigation links */}
+      <div id="reels" className="absolute -top-20" aria-hidden="true" />
       {/* Ambient Sky Soft Glow Accents */}
       <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-white/70 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-96 h-96 bg-[#43B8F2]/10 rounded-full blur-3xl pointer-events-none" />
