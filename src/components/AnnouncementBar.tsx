@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { Leaf, Sparkles, Heart, MapPin, Phone } from "lucide-react";
+import Link from "next/link";
+import { Leaf, Sparkles, Heart, MapPin, Phone, Lock } from "lucide-react";
 import { TOP_BAR_DATA } from "@/data/brandData";
 import { InstagramIcon, FacebookIcon, YoutubeIcon } from "./SocialIcons";
 
@@ -94,6 +95,18 @@ export default function AnnouncementBar() {
               <YoutubeIcon className="w-3.5 h-3.5" />
             </a>
           </div>
+
+          <span className="text-white/30 text-xs">|</span>
+
+          {/* Admin Panel Access as requested in header top bar */}
+          <Link
+            href="/admin/login"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20 text-white font-medium text-[11px] sm:text-xs transition-all border border-white/25 hover:border-white/50 shadow-sm"
+            title="Sky Laban Admin Panel"
+          >
+            <Lock className="w-3 h-3 text-white fill-white" />
+            <span className="whitespace-nowrap font-medium">Admin Panel</span>
+          </Link>
         </div>
 
       </div>
