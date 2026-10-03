@@ -194,5 +194,42 @@ export async function deleteProductFromSupabaseTable(id: string): Promise<void> 
   }
 }
 
+/**
+ * Delete a file from Supabase Storage bucket
+ */
+export async function deleteFromSupabaseStorage(
+  filePath: string,
+  customClient?: SupabaseClient
+): Promise<boolean> {
+  let client = customClient;
+  if (!client) {
+    if (typeof window === "undefined") {
+      try {
+        const { createClient: createServerClientSSR } = await import("./supabase/server");
+        client = (await createServerClientSSR()) as unknown as SupabaseClient;
+      } catch {
+        client = getSupabaseClient();
+      }
+    } else {
+      client = getSupabaseClient();
+    }
+  }
+  if (!client) return false;
+
+  try {
+    const { error } = await client.storage
+      .from(MEDIA_BUCKET)
+      .remove([filePath]);
+    if (error) {
+      console.warn(`Supabase Storage remove warning [${MEDIA_BUCKET}]:`, error.message);
+      return false;
+    }
+    return true;
+  } catch (err: any) {
+    console.warn("Storage remove exception:", err.message);
+    return false;
+  }
+}
+
 
 

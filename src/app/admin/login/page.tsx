@@ -53,11 +53,11 @@ function LoginForm() {
         throw new Error(data.error || "Authentication failed. Access restricted to authorized admins.");
       }
 
-      // Safe redirect: use redirect parameter if valid, otherwise go to /admin
+      // Safe redirect: use redirect parameter if valid, otherwise go to /admin/dashboard
       const target =
         redirectParam && redirectParam.startsWith("/admin") && !redirectParam.startsWith("//")
-          ? redirectParam
-          : "/admin";
+          ? (redirectParam === "/admin" ? "/admin/dashboard" : redirectParam)
+          : "/admin/dashboard";
 
       window.location.href = target;
     } catch (err: unknown) {

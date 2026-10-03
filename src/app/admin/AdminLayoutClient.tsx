@@ -6,6 +6,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
+  FolderTree,
   Sliders,
   ShoppingBag,
   MapPin,
@@ -29,11 +30,12 @@ interface AdminLayoutClientProps {
   children: React.ReactNode;
 }
 
-// Exactly the 8 required sidebar navigation items from user specification
+// Navigation items matching Sky Laban content management requirements
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/hero", label: "Hero Section", icon: Sliders },
   { href: "/admin/products", label: "Products", icon: ShoppingBag },
+  { href: "/admin/categories", label: "Categories", icon: FolderTree },
+  { href: "/admin/hero", label: "Hero Section", icon: Sliders },
   { href: "/admin/outlets", label: "Outlets", icon: MapPin },
   { href: "/admin/reels", label: "Instagram Reels", icon: Film },
   { href: "/admin/website-content", label: "Website Content", icon: FileText },

@@ -95,6 +95,15 @@ export default function Footer({ onOpenConnectModal, onOpenFranchiseModal }: Foo
                   </a>
                 </li>
               ))}
+              <li className="pt-2 border-t border-white/10">
+                <Link
+                  href="/admin/login"
+                  className="inline-flex items-center gap-1.5 text-xs text-white/50 hover:text-[#43B8F2] transition-colors"
+                >
+                  <Lock className="w-3 h-3 text-[#43B8F2]" />
+                  <span>Admin Login</span>
+                </Link>
+              </li>
             </ul>
           </div>
 
