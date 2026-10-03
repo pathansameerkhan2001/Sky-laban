@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import OpeningAnimation from "@/components/OpeningAnimation";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import HeadlineTicker from "@/components/HeadlineTicker";
@@ -21,6 +22,9 @@ export default function Home() {
 
   return (
     <main className="min-h-screen flex flex-col bg-white overflow-x-hidden w-full selection:bg-[#DDF5FF] selection:text-[#0754C9]">
+      {/* 0. Website Opening Animation (Plays once per session, elegant reveal) */}
+      <OpeningAnimation />
+
       {/* 1. Header and navigation */}
       <Header
         onOpenFranchiseModal={() => setIsFranchiseModalOpen(true)}

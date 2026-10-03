@@ -81,13 +81,14 @@ function LoginForm() {
       <div className="relative w-full max-w-md bg-white/95 backdrop-blur-xl rounded-3xl border border-[#DDF5FF] shadow-[0_25px_60px_rgba(7,84,201,0.14)] p-7 sm:p-9 z-10">
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center mb-8">
-          <div className="relative w-44 h-14 mb-3">
+          <div className="flex items-center justify-center mb-3">
             <Image
-              src={getMediaUrl("/images/sky_laban_logo_transparent.png")}
+              src="/images/sky_laban_logo_transparent.png"
               alt="Sky Laban"
-              fill
-              className="object-contain"
+              width={180}
+              height={64}
               priority
+              className="h-12 sm:h-14 w-auto object-contain drop-shadow-[0_2px_10px_rgba(7,84,201,0.22)]"
             />
           </div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EBF6FF] text-[#0754C9] text-xs font-bold tracking-wider uppercase mb-2">

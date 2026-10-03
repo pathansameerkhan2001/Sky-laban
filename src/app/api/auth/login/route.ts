@@ -93,11 +93,11 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // A. Query database public.admin_users table by user.id (UUID), id, and email
+    // A. Query database public.admin_users table by authenticated user's actual UUID (user.id)
     try {
-      const { data: byUserId } = await authQueryClient
+      const { data: byUserId, error: queryErr } = await authQueryClient
         .from("admin_users")
-        .select("id, user_id, email, display_name, role")
+        .select("id, user_id, display_name, role")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
       } else {
         const { data: byId } = await authQueryClient
           .from("admin_users")
-          .select("id, user_id, email, display_name, role")
+          .select("id, user_id, display_name, role")
           .eq("id", user.id)
           .maybeSingle();
 
@@ -116,19 +116,10 @@ export async function POST(req: NextRequest) {
           isAuthorized = true;
           role = byId.role || role;
           displayName = byId.display_name || displayName;
-        } else if (user.email) {
-          const { data: byEmail } = await authQueryClient
-            .from("admin_users")
-            .select("id, user_id, email, display_name, role")
-            .eq("email", user.email.toLowerCase().trim())
-            .maybeSingle();
-
-          if (byEmail && ALLOWED_ADMIN_ROLES.includes(String(byEmail.role).trim().toLowerCase())) {
-            isAuthorized = true;
-            role = byEmail.role || role;
-            displayName = byEmail.display_name || displayName;
-          }
         }
+      }
+      if (queryErr) {
+        console.warn("[Auth] admin_users query warning:", queryErr.message);
       }
     } catch (err) {
       console.warn("[Auth] admin_users query notice:", err);

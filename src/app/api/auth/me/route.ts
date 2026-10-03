@@ -25,48 +25,76 @@ export async function GET() {
       },
     });
 
+const ALLOWED_ADMIN_ROLES = ["admin", "super admin", "super_admin", "editor", "administrator"];
+const KNOWN_ADMIN_EMAILS = ["brandnix.in@gmail.com"];
+const KNOWN_ADMIN_UUIDS = [
+  "4300f42c-c168-4ce-9254-5fad4c4539a5",
+  "53177535-cbd5-4f02-b7c5-ce9cabc4c6f6",
+];
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     if (user) {
-      // Find admin details
+      let isAuthorized = false;
       let displayName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Admin";
-      let role = user.app_metadata?.role || "admin";
+      let role = "admin";
 
       try {
         const { data: byUserId } = await supabase
           .from("admin_users")
-          .select("display_name, role")
+          .select("id, user_id, display_name, role")
           .eq("user_id", user.id)
           .maybeSingle();
 
-        if (byUserId) {
+        if (byUserId && ALLOWED_ADMIN_ROLES.includes(String(byUserId.role).trim().toLowerCase())) {
+          isAuthorized = true;
           displayName = byUserId.display_name || displayName;
           role = byUserId.role || role;
         } else {
           const { data: byId } = await supabase
             .from("admin_users")
-            .select("display_name, role")
+            .select("id, user_id, display_name, role")
             .eq("id", user.id)
             .maybeSingle();
-          if (byId) {
+          if (byId && ALLOWED_ADMIN_ROLES.includes(String(byId.role).trim().toLowerCase())) {
+            isAuthorized = true;
             displayName = byId.display_name || displayName;
             role = byId.role || role;
-          } else if (user.email) {
-            const { data: byEmail } = await supabase
-              .from("admin_users")
-              .select("display_name, role")
-              .eq("email", user.email.toLowerCase().trim())
-              .maybeSingle();
-            if (byEmail) {
-              displayName = byEmail.display_name || displayName;
-              role = byEmail.role || role;
-            }
           }
         }
       } catch {
         // Fallback
+      }
+
+      if (!isAuthorized) {
+        const appRole = String(user.app_metadata?.role || user.user_metadata?.role || "").trim().toLowerCase();
+        if (ALLOWED_ADMIN_ROLES.includes(appRole)) {
+          isAuthorized = true;
+          role = appRole;
+        }
+
+        const envEmails = (process.env.ADMIN_ALLOWED_EMAILS || "")
+          .toLowerCase()
+          .split(",")
+          .map((e) => e.trim())
+          .filter(Boolean);
+        const allAllowedEmails = [...KNOWN_ADMIN_EMAILS, ...envEmails];
+
+        if (
+          (user.email && allAllowedEmails.includes(user.email.toLowerCase().trim())) ||
+          KNOWN_ADMIN_UUIDS.includes(user.id)
+        ) {
+          isAuthorized = true;
+          if (user.id === "4300f42c-c168-4ce-9254-5fad4c4539a5") {
+            displayName = "Brandnix Admin";
+          }
+        }
+      }
+
+      if (!isAuthorized) {
+        return NextResponse.json({ authenticated: false, error: "Access denied: Account is not an authorized administrator." }, { status: 403 });
       }
 
       return NextResponse.json({

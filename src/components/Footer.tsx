@@ -2,7 +2,8 @@
 
 import React from "react";
 import Image from "next/image";
-import { Phone, Mail, MapPin, Heart, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { Phone, Mail, MapPin, Heart, Sparkles, Lock } from "lucide-react";
 import { FOOTER_DATA } from "@/data/brandData";
 import { InstagramIcon, FacebookIcon, YoutubeIcon } from "./SocialIcons";
 import { getMediaUrl } from "@/lib/media";
@@ -26,15 +27,15 @@ export default function Footer({ onOpenConnectModal, onOpenFranchiseModal }: Foo
           {/* Brand Info Column */}
           <div className="lg:col-span-5 space-y-5">
             {/* Exact Sky Laban Logo */}
-            <a href="#home" className="inline-block relative w-36 sm:w-44 h-14">
+            <Link href="/" className="inline-flex items-center" aria-label="Sky Laban Home">
               <Image
-                src={getMediaUrl("/images/sky_laban_logo_transparent.png")}
+                src="/images/sky_laban_logo_transparent.png"
                 alt="Sky Laban Brand Logo"
-                fill
-                sizes="(max-width: 640px) 144px, 176px"
-                className="object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
+                width={176}
+                height={62}
+                className="h-12 sm:h-14 w-auto object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.25)]"
               />
-            </a>
+            </Link>
 
             <p className="text-white/80 text-sm leading-relaxed max-w-sm">
               {FOOTER_DATA.brandBio}
@@ -134,9 +135,20 @@ export default function Footer({ onOpenConnectModal, onOpenFranchiseModal }: Foo
 
         </div>
 
-        {/* Bottom Bar: Copyright & Tagline */}
+        {/* Bottom Bar: Copyright, Tagline & Discreet Admin Portal */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-white/60 gap-4">
-          <div>{FOOTER_DATA.copyright}</div>
+          <div className="flex items-center gap-3">
+            <span>{FOOTER_DATA.copyright}</span>
+            <span className="text-white/20 select-none">•</span>
+            <Link
+              href="/admin/login"
+              className="inline-flex items-center gap-1.5 text-white/50 hover:text-[#43B8F2] transition-colors text-xs font-medium"
+              title="Sky Laban Admin Portal"
+            >
+              <Lock className="w-3 h-3 text-[#43B8F2]" />
+              <span>Admin Login</span>
+            </Link>
+          </div>
           <div className="flex items-center gap-1.5">
             <span>Crafted with passion for creamy happiness</span>
             <Heart className="w-3 h-3 text-[#43B8F2] fill-[#43B8F2]" />

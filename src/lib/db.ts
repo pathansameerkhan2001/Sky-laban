@@ -475,7 +475,7 @@ function getInitialData(): AppDatabase {
       id: "founder-akram",
       name: "B. Akram Ali Khan",
       title: "Founder & Chief Visionary",
-      image: "/images/founders/akram-ali-khan-hd.jpg",
+      image: "/images/Founder1(1).png",
       description:
         "B. Akram Ali Khan is the Founder and Chief Visionary of Sky Laban, helping shape the brand’s vision and its journey in bringing distinctive dessert experiences to more communities. With a deep passion for premium desserts and quality craftsmanship, he guides Sky Laban’s growth from our first outlet in Shaikpet to 15 outlets across Hyderabad and beyond.",
       order: 1,

@@ -21,7 +21,7 @@ const DEFAULT_FOUNDERS: FounderData[] = [
     id: "founder-akram",
     name: "B. Akram Ali Khan",
     title: "Founder & Chief Visionary",
-    image: "/images/founders/akram-ali-khan-hd.jpg",
+    image: "/images/Founder1(1).png",
     description:
       "B. Akram Ali Khan is the Founder and Chief Visionary of Sky Laban, helping shape the brand’s vision and its journey in bringing distinctive dessert experiences to more communities. With a deep passion for premium desserts and quality craftsmanship, he guides Sky Laban’s growth from our first outlet in Shaikpet to 15 outlets across Hyderabad and beyond.",
     quote: "Turning a simple dream into a shared happiness across the city.",
@@ -122,7 +122,7 @@ export default function Founders() {
                   alt={akram.name}
                   fill
                   sizes="(max-width: 768px) 100vw, 420px"
-                  className="object-cover object-top group-hover:scale-104 transition-transform duration-700 ease-out"
+                  className="object-cover object-center group-hover:scale-104 transition-transform duration-700 ease-out"
                   priority
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#063B91]/40 via-transparent to-transparent pointer-events-none" />

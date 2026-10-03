@@ -32,18 +32,6 @@ async function isAuthorizedAdmin(supabase: SupabaseClient, user: User | null): P
     if (byId && ALLOWED_ADMIN_ROLES.includes(String(byId.role).trim().toLowerCase())) {
       return true;
     }
-
-    if (user.email) {
-      const { data: byEmail } = await supabase
-        .from("admin_users")
-        .select("role")
-        .eq("email", user.email.toLowerCase().trim())
-        .maybeSingle();
-
-      if (byEmail && ALLOWED_ADMIN_ROLES.includes(String(byEmail.role).trim().toLowerCase())) {
-        return true;
-      }
-    }
   } catch (err) {
     console.warn("admin_users table check notice in middleware:", err);
   }

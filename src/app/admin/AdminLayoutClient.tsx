@@ -31,7 +31,7 @@ interface AdminLayoutClientProps {
 
 // Exactly the 8 required sidebar navigation items from user specification
 const NAV_ITEMS = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/hero", label: "Hero Section", icon: Sliders },
   { href: "/admin/products", label: "Products", icon: ShoppingBag },
   { href: "/admin/outlets", label: "Outlets", icon: MapPin },
@@ -126,16 +126,15 @@ export default function AdminLayoutClient({ children }: AdminLayoutClientProps) 
       <aside className="hidden lg:flex w-64 xl:w-72 flex-col bg-[#041633] text-white shrink-0 h-screen sticky top-0 z-40 border-r border-[#0A2756] shadow-xl">
         {/* Brand Header */}
         <div className="p-6 pb-5 border-b border-white/10 flex items-center justify-between">
-          <Link href="/admin/dashboard" className="flex items-center gap-3 group">
-            <div className="relative w-32 h-10 transition-transform group-hover:scale-102">
-              <Image
-                src={getMediaUrl("/images/sky_laban_logo_transparent.png")}
-                alt="Sky Laban Logo"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
+          <Link href="/admin" className="flex items-center gap-3 group">
+            <Image
+              src="/images/sky_laban_logo_transparent.png"
+              alt="Sky Laban Logo"
+              width={140}
+              height={44}
+              className="h-9 w-auto object-contain transition-transform group-hover:scale-102"
+              priority
+            />
             <span className="px-2 py-0.5 rounded-full bg-[#43B8F2]/20 text-[#43B8F2] text-[10px] font-extrabold tracking-wider uppercase border border-[#43B8F2]/30">
               Admin
             </span>
@@ -151,8 +150,9 @@ export default function AdminLayoutClient({ children }: AdminLayoutClientProps) 
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive =
-              pathname === item.href ||
-              (item.href !== "/admin/dashboard" && pathname.startsWith(item.href));
+              item.href === "/admin"
+                ? pathname === "/admin" || pathname === "/admin/dashboard"
+                : pathname === item.href || pathname.startsWith(item.href + "/");
 
             return (
               <Link
@@ -322,14 +322,15 @@ export default function AdminLayoutClient({ children }: AdminLayoutClientProps) 
           <div className="w-72 bg-[#041633] text-white h-full shadow-2xl flex flex-col p-4 animate-in slide-in-from-left duration-200">
             {/* Drawer Header */}
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
-              <div className="relative w-28 h-9">
+              <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
                 <Image
-                  src={getMediaUrl("/images/sky_laban_logo_transparent.png")}
+                  src="/images/sky_laban_logo_transparent.png"
                   alt="Sky Laban"
-                  fill
-                  className="object-contain"
+                  width={120}
+                  height={38}
+                  className="h-8 w-auto object-contain"
                 />
-              </div>
+              </Link>
               <button
                 onClick={() => setMobileMenuOpen(false)}
                 className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10"
@@ -343,8 +344,9 @@ export default function AdminLayoutClient({ children }: AdminLayoutClientProps) 
               {NAV_ITEMS.map((item) => {
                 const Icon = item.icon;
                 const isActive =
-                  pathname === item.href ||
-                  (item.href !== "/admin/dashboard" && pathname.startsWith(item.href));
+                  item.href === "/admin"
+                    ? pathname === "/admin" || pathname === "/admin/dashboard"
+                    : pathname === item.href || pathname.startsWith(item.href + "/");
 
                 return (
                   <Link

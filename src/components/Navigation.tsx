@@ -27,24 +27,22 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
           {/* ================= DESKTOP VIEW (hidden md:flex) ================= */}
           <div className="hidden md:flex items-center justify-between">
             {/* Desktop Left: Sky Laban Exact Logo aligned left */}
-            <div className="flex items-center">
-              <a
-                href="#home"
+            <div className="flex items-center shrink-0 mr-4 lg:mr-8">
+              <Link
+                href="/"
                 className="group relative flex items-center transition-transform hover:scale-[1.02] active:scale-[0.98]"
                 aria-label="Sky Laban Home"
                 onClick={() => setActiveLink("Home")}
               >
-                <div className="relative w-36 lg:w-40 h-11 lg:h-13">
-                  <Image
-                    src={getMediaUrl("/images/sky_laban_logo_transparent.png")}
-                    alt="Sky Laban Logo"
-                    fill
-                    sizes="160px"
-                    className="object-contain drop-shadow-[0_2px_8px_rgba(7,84,201,0.18)]"
-                    priority
-                  />
-                </div>
-              </a>
+                <Image
+                  src="/images/sky_laban_logo_transparent.png"
+                  alt="Sky Laban"
+                  width={160}
+                  height={56}
+                  priority
+                  className="h-10 md:h-11 lg:h-12 w-auto object-contain drop-shadow-[0_2px_8px_rgba(7,84,201,0.2)]"
+                />
+              </Link>
             </div>
 
             {/* Desktop Center: Navigation Links */}
@@ -253,21 +251,21 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
 
             {/* Center: Perfectly Centered Sky Laban Logo */}
             <div className="flex-1 flex justify-center items-center">
-              <a
-                href="#home"
+              <Link
+                href="/"
                 onClick={() => setMobileMenuOpen(false)}
-                className="relative block w-28 sm:w-32 h-9 sm:h-10"
+                className="flex items-center justify-center shrink-0"
                 aria-label="Sky Laban Mobile Home"
               >
                 <Image
-                  src={getMediaUrl("/images/sky_laban_logo_transparent.png")}
-                  alt="Sky Laban Logo"
-                  fill
-                  sizes="128px"
-                  className="object-contain"
+                  src="/images/sky_laban_logo_transparent.png"
+                  alt="Sky Laban"
+                  width={130}
+                  height={46}
                   priority
+                  className="h-9 sm:h-10 w-auto object-contain drop-shadow-[0_2px_6px_rgba(7,84,201,0.2)]"
                 />
-              </a>
+              </Link>
             </div>
 
             {/* Right: Action Icon (Let Connect) */}

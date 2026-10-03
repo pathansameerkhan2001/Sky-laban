@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, Sparkles, ArrowRight } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getMediaUrl } from "@/lib/media";
 
 export interface HeroSlide {
@@ -54,7 +53,6 @@ export default function Hero() {
   const [slides, setSlides] = useState<HeroSlide[]>(DEFAULT_HERO_SLIDES);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const shouldReduceMotion = useReducedMotion();
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
 
@@ -138,7 +136,7 @@ export default function Hero() {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className="hero relative w-full overflow-hidden bg-[#063B91] select-none focus:outline-none h-[68vh] sm:h-[72vh] md:h-[76vh] lg:h-[82vh] min-h-[460px] max-h-[820px]"
+      className="hero relative w-full overflow-hidden bg-[#063B91] select-none focus:outline-none h-[56vh] sm:h-[65vh] md:h-[74vh] lg:h-[80vh] min-h-[380px] sm:min-h-[440px] max-h-[780px]"
     >
       {/* Slides Background Track */}
       <div className="relative w-full h-full">
@@ -185,66 +183,8 @@ export default function Hero() {
         })}
       </div>
 
-      {/* Cinematic Contrast Overlay (Adaptive for Desktop & Mobile) */}
-      <div
-        className="absolute inset-0 z-15 pointer-events-none bg-gradient-to-t from-black/85 via-black/45 to-black/20 md:bg-gradient-to-r md:from-black/85 md:via-black/50 md:to-transparent"
-        aria-hidden="true"
-      />
-
-      {/* Foreground Hero Text & Interaction Overlay */}
-      <div className="absolute inset-0 z-20 flex flex-col justify-end md:justify-center px-5 sm:px-8 md:px-12 lg:px-16 xl:px-20 pb-12 sm:pb-14 md:pb-0 pointer-events-none">
-        <div className="max-w-2xl text-left pointer-events-auto">
-          {/* Eyebrow Badge */}
-          <motion.div
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white text-[10px] sm:text-xs font-black tracking-widest uppercase mb-3 sm:mb-4 shadow-sm"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[#43B8F2]" />
-            <span>Authentic Egyptian &amp; Middle Eastern Desserts</span>
-          </motion.div>
-
-          {/* Main Headline */}
-          <motion.h1
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-3xl sm:text-5xl md:text-6xl lg:text-[66px] font-black text-white tracking-tight leading-[1.08] drop-shadow-md"
-          >
-            Creamy Happiness
-            <span className="block font-serif italic font-normal text-[#43B8F2] text-2xl sm:text-4xl md:text-5xl lg:text-[54px] mt-1 sm:mt-1.5">
-              in Every Scoop
-            </span>
-          </motion.h1>
-
-          {/* Supporting Text */}
-          <motion.p
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-white/90 text-xs sm:text-sm md:text-base lg:text-lg max-w-xl font-normal leading-relaxed drop-shadow-sm mt-2.5 sm:mt-4 line-clamp-3 sm:line-clamp-none"
-          >
-            Indulge in artisanal dessert perfection — handcrafted with slow-churned farm dairy, rich Nutella, spiced Lotus, and pure Bronte pistachios.
-          </motion.p>
-
-          {/* Minimal Interaction: Explore Our Products */}
-          <motion.div
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="mt-5 sm:mt-7 flex items-center gap-3"
-          >
-            <a
-              href="#products"
-              className="group inline-flex items-center gap-2.5 px-6 sm:px-8 py-3 sm:py-3.5 rounded-full bg-[#0754C9] hover:bg-white text-white hover:text-[#063B91] font-bold text-xs sm:text-sm shadow-[0_8px_25px_rgba(7,84,201,0.4)] hover:shadow-[0_10px_30px_rgba(255,255,255,0.3)] transition-all duration-300 hover:scale-103 active:scale-98 cursor-pointer"
-            >
-              <span>Explore Our Products</span>
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1 text-white group-hover:text-[#063B91]" />
-            </a>
-          </motion.div>
-        </div>
-      </div>
+      {/* Accessible single H1 for SEO and Screen Readers (Visual presentation is 100% focused on product photography) */}
+      <h1 className="sr-only">Sky Laban — Authentic Egyptian &amp; Middle Eastern Desserts</h1>
 
       {/* CAROUSEL NAVIGATION: Previous Button (Frosted Pill) */}
       <button

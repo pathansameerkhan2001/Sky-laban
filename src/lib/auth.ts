@@ -115,11 +115,11 @@ export async function getAdminSession(): Promise<AdminSession | null> {
         let role = user.app_metadata?.role || user.user_metadata?.role || "admin";
         let displayName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Admin";
 
-        // Check public.admin_users table
+        // Check public.admin_users table by user.id UUID
         try {
           const { data: byUserId } = await supabase
             .from("admin_users")
-            .select("id, user_id, email, display_name, role")
+            .select("id, user_id, display_name, role")
             .eq("user_id", user.id)
             .maybeSingle();
 
@@ -130,7 +130,7 @@ export async function getAdminSession(): Promise<AdminSession | null> {
           } else {
             const { data: byId } = await supabase
               .from("admin_users")
-              .select("id, user_id, email, display_name, role")
+              .select("id, user_id, display_name, role")
               .eq("id", user.id)
               .maybeSingle();
 
@@ -138,18 +138,6 @@ export async function getAdminSession(): Promise<AdminSession | null> {
               isAuthorized = true;
               role = byId.role || role;
               displayName = byId.display_name || displayName;
-            } else if (user.email) {
-              const { data: byEmail } = await supabase
-                .from("admin_users")
-                .select("id, user_id, email, display_name, role")
-                .eq("email", user.email.toLowerCase().trim())
-                .maybeSingle();
-
-              if (byEmail && ALLOWED_ADMIN_ROLES.includes(String(byEmail.role).trim().toLowerCase())) {
-                isAuthorized = true;
-                role = byEmail.role || role;
-                displayName = byEmail.display_name || displayName;
-              }
             }
           }
         } catch {}
