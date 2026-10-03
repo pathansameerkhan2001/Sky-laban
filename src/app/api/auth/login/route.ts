@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { createToken, setAdminSessionCookie } from "@/lib/auth";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/lib/supabase/config";
 
 const ALLOWED_ADMIN_ROLES = ["admin", "super admin", "super_admin", "editor", "administrator"];
-const KNOWN_ADMIN_EMAILS = ["adnix.in@gmail.com"];
-const KNOWN_ADMIN_UUIDS = ["53177535-cbd5-4f02-b7c5-ce9cabc4c6f6"];
+const KNOWN_ADMIN_EMAILS = ["brandnix.in@gmail.com"];
+const KNOWN_ADMIN_UUIDS = [
+  "4300f42c-c168-4ce-9254-5fad4c4539a5",
+  "53177535-cbd5-4f02-b7c5-ce9cabc4c6f6",
+];
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,7 +24,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanEmail = String(email).trim().toLowerCase();
     const cookieStore = await cookies();
     const pendingCookies: Array<{ name: string; value: string; options: any }> = [];
 
@@ -45,20 +49,20 @@ export async function POST(req: NextRequest) {
     // 1. Authenticate with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: cleanEmail,
-      password,
+      password: String(password),
     });
 
     if (authError || !authData.user) {
       const errMsg = authError?.message || "Invalid email or password.";
       console.warn(`[Supabase Auth] Login failed for ${cleanEmail}:`, errMsg);
 
-      let userFriendlyMessage = "Invalid login credentials. Please check your email and password, or use Forgot Password to reset.";
+      let userFriendlyMessage = "Invalid login credentials. Please check your email and password, or use 'Forgot password?' to set or reset it.";
       if (errMsg.toLowerCase().includes("invalid login credentials")) {
         userFriendlyMessage =
-          "Invalid login credentials. Please verify your email and password. If you forgot your password, click 'Forgot password?' below to reset it.";
+          "Invalid login credentials. Please verify your email and password. If your account was newly invited or created without a password, click 'Forgot password?' below to set your password.";
       } else if (errMsg.toLowerCase().includes("email not confirmed")) {
         userFriendlyMessage =
-          "Your email address has not been confirmed yet. Please check your inbox or confirm it in the Supabase Dashboard.";
+          "Your email address has not been confirmed yet. Please verify your email inbox or confirm the user in the Supabase Dashboard.";
       }
 
       return NextResponse.json(
@@ -74,9 +78,24 @@ export async function POST(req: NextRequest) {
     let role = "admin";
     let displayName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Admin";
 
+    // Use authenticated client with the user's JWT to ensure PostgreSQL RLS allows selecting from public.admin_users
+    const authHeaders: Record<string, string> = {};
+    if (authData.session?.access_token) {
+      authHeaders.Authorization = `Bearer ${authData.session.access_token}`;
+    }
+    const authQueryClient = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      global: {
+        headers: authHeaders,
+      },
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    });
+
     // A. Query database public.admin_users table by user.id (UUID), id, and email
     try {
-      const { data: byUserId } = await supabase
+      const { data: byUserId } = await authQueryClient
         .from("admin_users")
         .select("id, user_id, email, display_name, role")
         .eq("user_id", user.id)
@@ -87,7 +106,7 @@ export async function POST(req: NextRequest) {
         role = byUserId.role || role;
         displayName = byUserId.display_name || displayName;
       } else {
-        const { data: byId } = await supabase
+        const { data: byId } = await authQueryClient
           .from("admin_users")
           .select("id, user_id, email, display_name, role")
           .eq("id", user.id)
@@ -98,7 +117,7 @@ export async function POST(req: NextRequest) {
           role = byId.role || role;
           displayName = byId.display_name || displayName;
         } else if (user.email) {
-          const { data: byEmail } = await supabase
+          const { data: byEmail } = await authQueryClient
             .from("admin_users")
             .select("id, user_id, email, display_name, role")
             .eq("email", user.email.toLowerCase().trim())
@@ -137,7 +156,10 @@ export async function POST(req: NextRequest) {
         KNOWN_ADMIN_UUIDS.includes(user.id)
       ) {
         isAuthorized = true;
-        role = "super_admin";
+        role = "admin";
+        if (user.id === "4300f42c-c168-4ce-9254-5fad4c4539a5") {
+          displayName = "Brandnix Admin";
+        }
       }
     }
 

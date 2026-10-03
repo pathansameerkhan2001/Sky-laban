@@ -4,10 +4,16 @@ import { createServerClient } from "@supabase/ssr";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase/config";
 
 const SESSION_COOKIE_NAME = "skylaban_admin_session";
-const SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || "skylaban-secret-key-cream-desserts-2025";
 const ALLOWED_ADMIN_ROLES = ["admin", "super admin", "super_admin", "editor", "administrator"];
-const KNOWN_ADMIN_EMAILS = ["adnix.in@gmail.com"];
-const KNOWN_ADMIN_UUIDS = ["53177535-cbd5-4f02-b7c5-ce9cabc4c6f6"];
+const KNOWN_ADMIN_EMAILS = ["brandnix.in@gmail.com"];
+const KNOWN_ADMIN_UUIDS = [
+  "4300f42c-c168-4ce-9254-5fad4c4539a5",
+  "53177535-cbd5-4f02-b7c5-ce9cabc4c6f6",
+];
+
+function getSessionSecret(): string {
+  return process.env.ADMIN_SESSION_SECRET || "skylaban-default-session-secret-2026";
+}
 
 export interface AdminSession {
   userId: string;
@@ -36,7 +42,7 @@ function base64UrlDecode(str: string): string {
 
 function sign(payload: string): string {
   return crypto
-    .createHmac("sha256", SESSION_SECRET)
+    .createHmac("sha256", getSessionSecret())
     .update(payload)
     .digest("base64url");
 }

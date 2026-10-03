@@ -1,4 +1,4 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { type SupabaseClient } from "@supabase/supabase-js";
 import { createBrowserClient } from "@supabase/ssr";
 import {
   SUPABASE_URL,
@@ -43,9 +43,22 @@ export async function uploadToSupabaseStorage(
   fileBuffer: Buffer,
   fileName: string,
   folder: "hero" | "categories" | "products" | "reels" | "outlets" | "founders" | "branding" = "products",
-  contentType: string = "image/jpeg"
+  contentType: string = "image/jpeg",
+  customClient?: SupabaseClient
 ): Promise<{ url: string; path: string } | null> {
-  const client = getSupabaseClient();
+  let client = customClient;
+  if (!client) {
+    if (typeof window === "undefined") {
+      try {
+        const { createClient: createServerClientSSR } = await import("./supabase/server");
+        client = (await createServerClientSSR()) as unknown as SupabaseClient;
+      } catch {
+        client = getSupabaseClient();
+      }
+    } else {
+      client = getSupabaseClient();
+    }
+  }
   if (!client) return null;
 
   try {

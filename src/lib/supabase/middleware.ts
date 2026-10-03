@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { type SupabaseClient, type User } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./config";
 
@@ -7,33 +8,10 @@ const ALLOWED_ADMIN_ROLES = ["admin", "super admin", "super_admin", "editor"];
 /**
  * Check if the user is an authorized administrator
  */
-async function isAuthorizedAdmin(supabase: any, user: any): Promise<boolean> {
+async function isAuthorizedAdmin(supabase: SupabaseClient, user: User | null): Promise<boolean> {
   if (!user) return false;
 
-  // 1. Check user metadata / app_metadata
-  const appRole = String(user.app_metadata?.role || user.user_metadata?.role || "").toLowerCase();
-  if (ALLOWED_ADMIN_ROLES.includes(appRole)) {
-    return true;
-  }
-
-  // 2. Check approved admin allowlist from environment variable
-  const allowedEmails = (process.env.ADMIN_ALLOWED_EMAILS || "")
-    .toLowerCase()
-    .split(",")
-    .map((e) => e.trim())
-    .filter(Boolean);
-
-  const allAllowedEmails = ["adnix.in@gmail.com", ...allowedEmails];
-  const knownAdminUuids = ["53177535-cbd5-4f02-b7c5-ce9cabc4c6f6"];
-
-  if (
-    (user.email && allAllowedEmails.includes(user.email.toLowerCase().trim())) ||
-    knownAdminUuids.includes(user.id)
-  ) {
-    return true;
-  }
-
-  // 3. Query public.admin_users table in Supabase by UUID (user_id or id) and email
+  // 1. Query public.admin_users table in Supabase by authenticated user's UUID (user_id)
   try {
     const { data: byUserId } = await supabase
       .from("admin_users")
@@ -67,8 +45,33 @@ async function isAuthorizedAdmin(supabase: any, user: any): Promise<boolean> {
       }
     }
   } catch (err) {
-    // If table query encounters an issue, gracefully fall back
     console.warn("admin_users table check notice in middleware:", err);
+  }
+
+  // 2. Check user metadata / app_metadata
+  const appRole = String(user.app_metadata?.role || user.user_metadata?.role || "").toLowerCase();
+  if (ALLOWED_ADMIN_ROLES.includes(appRole)) {
+    return true;
+  }
+
+  // 3. Check approved admin allowlist from environment variable or verified admins
+  const allowedEmails = (process.env.ADMIN_ALLOWED_EMAILS || "")
+    .toLowerCase()
+    .split(",")
+    .map((e) => e.trim())
+    .filter(Boolean);
+
+  const allAllowedEmails = ["brandnix.in@gmail.com", ...allowedEmails];
+  const knownAdminUuids = [
+    "4300f42c-c168-4ce-9254-5fad4c4539a5",
+    "53177535-cbd5-4f02-b7c5-ce9cabc4c6f6",
+  ];
+
+  if (
+    (user.email && allAllowedEmails.includes(user.email.toLowerCase().trim())) ||
+    knownAdminUuids.includes(user.id)
+  ) {
+    return true;
   }
 
   return false;

@@ -521,26 +521,6 @@
       "order": 26
     },
     {
-      "id": "sheer-khurma",
-      "name": "Sheer Khurma",
-      "tagline": "Royal Eid Vermicelli Pudding with Dates & Dry Fruits",
-      "category": "Traditional Desserts",
-      "badge": "Festive Classic",
-      "image": "/products/aseera-nutella-bottle.jpg",
-      "sceneImage": "/images/salankatia_scene_wide.jpg",
-      "description": "Slow-simmered whole milk pudding loaded with roasted fine vermicelli, Medjool dates, chironji, pistachios, almonds, and aromatic green cardamom.",
-      "tastingNotes": [
-        "Medjool Date Sweetness",
-        "Roasted Vermicelli",
-        "Cardamom Saffron Milk"
-      ],
-      "servingSuggestion": "Serve warm or chilled according to your family tradition.",
-      "pairingNotes": "Karak tea or black coffee.",
-      "isHero": false,
-      "isAvailable": true,
-      "order": 27
-    },
-    {
       "id": "bomb-dessert",
       "name": "Bomb Dessert",
       "tagline": "Exploding Chocolate Sphere with Hot Ganache Pour",
@@ -559,6 +539,26 @@
       "isHero": true,
       "isAvailable": true,
       "order": 26
+    },
+    {
+      "id": "sheer-khurma",
+      "name": "Sheer Khurma",
+      "tagline": "Royal Eid Vermicelli Pudding with Dates & Dry Fruits",
+      "category": "Traditional Desserts",
+      "badge": "Festive Classic",
+      "image": "/products/aseera-nutella-bottle.jpg",
+      "sceneImage": "/images/salankatia_scene_wide.jpg",
+      "description": "Slow-simmered whole milk pudding loaded with roasted fine vermicelli, Medjool dates, chironji, pistachios, almonds, and aromatic green cardamom.",
+      "tastingNotes": [
+        "Medjool Date Sweetness",
+        "Roasted Vermicelli",
+        "Cardamom Saffron Milk"
+      ],
+      "servingSuggestion": "Serve warm or chilled according to your family tradition.",
+      "pairingNotes": "Karak tea or black coffee.",
+      "isHero": false,
+      "isAvailable": true,
+      "order": 27
     },
     {
       "id": "kashmira",
@@ -1089,6 +1089,14 @@
   ],
   "users": [
     {
+      "id": "4300f42c-c168-4ce-9254-5fad4c4539a5",
+      "email": "brandnix.in@gmail.com",
+      "passwordHash": "",
+      "name": "Brandnix Admin",
+      "role": "admin",
+      "createdAt": "2026-09-29T06:34:56.811Z"
+    },
+    {
       "id": "user-admin-1",
       "email": "admin@skylaban.com",
       "passwordHash": "29a81db204b5a799e1fc1f90743bb5ea170a1f7360c7f1a9ec347db843f87ea5",
@@ -1101,14 +1109,14 @@
     "brandName": "Sky Laban",
     "tagline": "Creamy Happiness in Every Scoop",
     "facebookUrl": "https://facebook.com/skylaban",
-    "instagramUrl": "https://www.instagram.com/sky_laban/?hl=en",
+    "instagramUrl": "https://www.instagram.com/sky_laban/",
     "youtubeUrl": "https://youtube.com/@skylaban",
     "metaTitle": "Sky Laban — Artisanal Desserts, Salankatia & Egyptian Delights",
     "metaDescription": "Indulge in authentic Salankatia, Koushiri, Hiba Cakes and artisanal dairy desserts crafted with Bronte pistachios and Belgian chocolate.",
     "enableOrdering": true,
     "maintenanceMode": false
   },
-  "lastUpdated": "2026-09-29T07:34:18.541Z",
+  "lastUpdated": "2026-10-03T06:20:03.670Z",
   "founders": [
     {
       "id": "founder-akram",

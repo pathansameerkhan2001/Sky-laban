@@ -126,7 +126,7 @@ export interface AdminUser {
   email: string;
   passwordHash: string; // SHA-256 or bcrypt
   name: string;
-  role: "Super Admin" | "Manager" | "Editor";
+  role: "Super Admin" | "Admin" | "Manager" | "Editor" | "admin" | string;
   createdAt: string;
 }
 
@@ -524,6 +524,14 @@ function getInitialData(): AppDatabase {
   };
 
   const initialUsers: AdminUser[] = [
+    {
+      id: "4300f42c-c168-4ce-9254-5fad4c4539a5",
+      email: "brandnix.in@gmail.com",
+      passwordHash: "",
+      name: "Brandnix Admin",
+      role: "admin",
+      createdAt: new Date().toISOString(),
+    },
     {
       id: "user-admin-1",
       email: "admin@skylaban.com",

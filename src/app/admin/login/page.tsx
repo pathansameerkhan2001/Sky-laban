@@ -131,7 +131,7 @@ function LoginForm() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@skylaban.com"
+                placeholder="brandnix.in@gmail.com"
                 autoComplete="email"
                 className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:border-[#0754C9] focus:ring-2 focus:ring-[#0754C9]/15 text-sm text-slate-800 outline-none transition-all"
               />
