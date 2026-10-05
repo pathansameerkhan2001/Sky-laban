@@ -126,35 +126,115 @@ export const LOCAL_TO_STORAGE_MAP: Record<string, string> = {
 
 /**
  * Returns the Supabase public Storage URL for a given relative bucket path.
- * Example: getSupabaseStorageUrl("products/salankatia-pistachio-lotus.jpg")
+ * Example: getSupabaseStorageUrl("hero/salankatia-hero-spoon-abc123.jpg")
  */
 export function getSupabaseStorageUrl(bucketPath: string): string {
-  const cleanPath = bucketPath.startsWith("/") ? bucketPath.slice(1) : bucketPath;
+  const cleanPath = bucketPath.replace(/^\/+/, "");
   return `${SUPABASE_PUBLIC_MEDIA_URL}/${cleanPath}`;
 }
 
 /**
- * Smart Media URL Resolver:
- * - If path is already a remote URL (https://...), returns it directly.
- * - If NEXT_PUBLIC_SERVE_FROM_SUPABASE is "true" and path has a mapped bucket path, returns the Supabase Storage URL.
- * - Otherwise falls back to the safe, verified local path so images never break before bucket upload.
+ * Standard Storage Folders for Sky Laban Media
  */
-export function getMediaUrl(path: string | undefined | null): string {
-  if (!path) return "/images/sky_laban_logo_transparent.png";
+export const STORAGE_FOLDERS = [
+  "hero/",
+  "products/",
+  "reels/",
+  "outlets/",
+  "branding/",
+  "founders/",
+  "drinks/",
+  "categories/",
+] as const;
 
-  // If already a remote URL, return as-is
-  if (path.startsWith("http://") || path.startsWith("https://")) {
-    return path;
+/**
+ * Convert any full URL or slash-prefixed path into a clean relative storage path.
+ * Examples:
+ *   "https://gioxrotqpuzmgtoayfre.supabase.co/storage/v1/object/public/sky-laban-media/hero/sample.jpg" -> "hero/sample.jpg"
+ *   "/hero/sample.jpg" -> "hero/sample.jpg"
+ *   "hero/sample.jpg" -> "hero/sample.jpg"
+ */
+export function toStoragePath(pathOrUrl: string | undefined | null): string {
+  if (!pathOrUrl || typeof pathOrUrl !== "string") return "";
+  let clean = pathOrUrl.trim();
+
+  // Strip Supabase public URL base if present
+  if (clean.includes("/storage/v1/object/public/")) {
+    const parts = clean.split("/storage/v1/object/public/");
+    if (parts[1]) {
+      const bucketAndPath = parts[1];
+      const prefix = `${MEDIA_BUCKET}/`;
+      if (bucketAndPath.startsWith(prefix)) {
+        clean = bucketAndPath.slice(prefix.length);
+      } else {
+        clean = bucketAndPath;
+      }
+    }
   }
 
-  // If Supabase serving is explicitly enabled
-  const serveFromSupabase = process.env.NEXT_PUBLIC_SERVE_FROM_SUPABASE === "true";
-  if (serveFromSupabase && LOCAL_TO_STORAGE_MAP[path]) {
-    return getSupabaseStorageUrl(LOCAL_TO_STORAGE_MAP[path]);
-  }
-
-  return path;
+  // Strip any leading slashes
+  return clean.replace(/^\/+/, "");
 }
+
+/**
+ * Central Public Image URL Generator:
+ * 
+ * Safely converts storage paths (e.g. "hero/salankatia-hero-spoon.jpg", "products/item.jpg")
+ * into the full Supabase public URL:
+ * https://gioxrotqpuzmgtoayfre.supabase.co/storage/v1/object/public/sky-laban-media/...
+ * 
+ * Handles:
+ * - hero/example.jpg
+ * - products/example.jpg
+ * - reels/example.jpg
+ * - outlets/example.jpg
+ * - branding/example.jpg
+ * - founders/example.jpg
+ * - Already-complete remote URLs (https://...) are returned unchanged.
+ * - Local static website files (/images/...) are formatted with leading slash.
+ */
+export function getPublicMediaUrl(path: string | undefined | null): string {
+  if (!path || typeof path !== "string") {
+    return "/images/sky_laban_logo_transparent.png";
+  }
+
+  const trimmed = path.trim();
+
+  // 1. If already an absolute remote URL or data/blob URI, return as-is
+  if (
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("data:") ||
+    trimmed.startsWith("blob:")
+  ) {
+    return trimmed;
+  }
+
+  // 2. Strip leading slash for folder comparison
+  const cleanPath = trimmed.replace(/^\/+/, "");
+
+  // 3. Check for standard Supabase Storage bucket folders
+  for (const folder of STORAGE_FOLDERS) {
+    if (cleanPath.startsWith(folder)) {
+      return `${SUPABASE_PUBLIC_MEDIA_URL}/${cleanPath}`;
+    }
+  }
+
+  // 4. Check if mapped in local-to-storage map
+  const serveFromSupabase = process.env.NEXT_PUBLIC_SERVE_FROM_SUPABASE === "true";
+  const mapped = LOCAL_TO_STORAGE_MAP[trimmed] || LOCAL_TO_STORAGE_MAP[`/${cleanPath}`];
+  if (mapped && serveFromSupabase) {
+    return `${SUPABASE_PUBLIC_MEDIA_URL}/${mapped.replace(/^\/+/, "")}`;
+  }
+
+  // 5. Default fallback to clean local website asset path
+  return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+}
+
+/**
+ * Backwards-compatible alias for getPublicMediaUrl
+ */
+export const getMediaUrl = getPublicMediaUrl;
 
 /**
  * Returns the expected Supabase storage path for any local path
@@ -162,3 +242,4 @@ export function getMediaUrl(path: string | undefined | null): string {
 export function getExpectedStoragePath(localPath: string): string | null {
   return LOCAL_TO_STORAGE_MAP[localPath] || null;
 }
+

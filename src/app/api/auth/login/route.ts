@@ -166,6 +166,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Ensure the authorized admin user is persisted in public.admin_users for Storage RLS checks
+    try {
+      await authQueryClient.from("admin_users").upsert(
+        {
+          user_id: user.id,
+          email: user.email,
+          display_name: displayName,
+          role: "admin",
+        },
+        { onConflict: "user_id" }
+      );
+    } catch (e) {
+      console.warn("[Auth] admin_users upsert notice:", e);
+    }
+
     // Construct JSON response
     const response = NextResponse.json({
       success: true,

@@ -5,7 +5,7 @@ import {
   uploadToSupabaseStorage,
   MEDIA_BUCKET,
 } from "@/lib/supabase";
-import { LOCAL_TO_STORAGE_MAP, getSupabaseStorageUrl } from "@/lib/media";
+import { LOCAL_TO_STORAGE_MAP, getSupabaseStorageUrl, toStoragePath } from "@/lib/media";
 import {
   getDbProducts,
   getDbHeroSlides,
@@ -90,7 +90,7 @@ export async function GET(req: NextRequest) {
   try {
     const foldersToFetch =
       requestedFolder === "all"
-        ? ["hero", "products", "outlets", "reels", "branding", "drinks"]
+        ? ["hero", "products", "outlets", "reels", "branding", "drinks", "founders"]
         : [requestedFolder];
 
     let foundAnyRemote = false;
@@ -175,13 +175,15 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { searchParams } = new URL(req.url);
-  const filePath = searchParams.get("path");
+  const searchParams = req.nextUrl.searchParams;
+  const rawPath = searchParams.get("path");
   const force = searchParams.get("force") === "true";
 
-  if (!filePath) {
+  if (!rawPath) {
     return NextResponse.json({ error: "File path is required" }, { status: 400 });
   }
+
+  const filePath = toStoragePath(rawPath);
 
   // Check usage
   const usage = checkUsage(filePath, `/${filePath}`);

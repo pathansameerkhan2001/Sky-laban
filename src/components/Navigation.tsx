@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Store, Send, Menu, X, Sparkles, Phone, ShieldCheck } from "lucide-react";
+import { ChevronDown, Store, Send, Menu, X, Sparkles, Phone, ShieldCheck, Lock } from "lucide-react";
 import { NAVIGATION_DATA } from "@/data/brandData";
 import { getMediaUrl } from "@/lib/media";
 
@@ -231,7 +231,15 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
                 <span>Let Connect</span>
               </button>
 
-
+              {/* Subtle Discreet Admin Portal Icon */}
+              <Link
+                href="/admin/login"
+                className="p-2 rounded-full text-[#1c3f68]/40 hover:text-[#0754C9] hover:bg-white/80 transition-colors"
+                title="Admin Portal"
+                aria-label="Admin Portal"
+              >
+                <Lock className="w-3.5 h-3.5" />
+              </Link>
             </div>
           </div>
 
@@ -375,6 +383,16 @@ export default function Navigation({ onOpenConnectModal, onOpenFranchiseModal }:
                     <span>Let Connect</span>
                   </button>
 
+                  <div className="pt-2 flex justify-center">
+                    <Link
+                      href="/admin/login"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="inline-flex items-center gap-1.5 text-[11px] text-slate-400 hover:text-[#0754C9] transition-colors py-1"
+                    >
+                      <Lock className="w-3 h-3" />
+                      <span>Admin Portal</span>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </motion.div>

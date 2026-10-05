@@ -22,7 +22,7 @@ import {
   Tag,
 } from "lucide-react";
 import { ProductItem, PRODUCT_CATEGORIES } from "@/data/brandData";
-import { getMediaUrl } from "@/lib/media";
+import { getMediaUrl, toStoragePath } from "@/lib/media";
 
 function AdminProductsContent() {
   const searchParams = useSearchParams();
@@ -93,19 +93,20 @@ function AdminProductsContent() {
         body: formData,
       });
 
+      const data = await res.json();
       if (!res.ok) {
-        throw new Error("Upload failed on server");
+        throw new Error(data.error || "Upload failed on server");
       }
 
-      const data = await res.json();
-      if (data.url) {
+      const storagePath = toStoragePath(data.storagePath || data.path || data.url);
+      if (storagePath) {
         setEditingProduct((prev) => ({
           ...prev,
-          image: data.url,
+          image: storagePath,
         }));
       }
     } catch (err: any) {
-      setErrorMsg(err.message || "Failed to upload image. You can also paste an image path.");
+      setErrorMsg(err.message || "Failed to upload image to Supabase Storage.");
     } finally {
       setUploadingImage(false);
     }

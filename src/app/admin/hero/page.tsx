@@ -19,7 +19,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { HeroSlideItem } from "@/lib/db";
-import { getMediaUrl } from "@/lib/media";
+import { getPublicMediaUrl, getMediaUrl, toStoragePath } from "@/lib/media";
 
 export default function AdminHeroPage() {
   const [slides, setSlides] = useState<HeroSlideItem[]>([]);
@@ -32,6 +32,7 @@ export default function AdminHeroPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const originalImageRef = useRef<string | null>(null);
 
   const fetchSlides = async () => {
     try {
@@ -39,7 +40,11 @@ export default function AdminHeroPage() {
       const res = await fetch("/api/admin/hero");
       if (res.ok) {
         const data = await res.json();
-        setSlides(data.sort((a: HeroSlideItem, b: HeroSlideItem) => (a.order || 0) - (b.order || 0)));
+        const normalized = data.map((s: any) => ({
+          ...s,
+          image: s.image || s.desktopImage || s.image_path,
+        }));
+        setSlides(normalized.sort((a: HeroSlideItem, b: HeroSlideItem) => (a.order || 0) - (b.order || 0)));
       }
     } catch (err) {
       console.error("Error fetching hero slides:", err);
@@ -56,20 +61,23 @@ export default function AdminHeroPage() {
     setEditingSlide({
       title: "",
       subtitle: "",
-      image: "/products/salankatia-hero-spoon.jpg",
+      image: "",
       order: slides.length + 1,
       isActive: true,
       tag: "Sky Laban Signature",
     });
-    setPreviewUrl("/products/salankatia-hero-spoon.jpg");
+    setPreviewUrl(null);
     setUploadError(null);
+    originalImageRef.current = null;
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (slide: HeroSlideItem) => {
-    setEditingSlide({ ...slide });
-    setPreviewUrl(slide.image || null);
+    const currentImg = slide.image || slide.desktopImage || (slide as any).image_path || "";
+    setEditingSlide({ ...slide, image: currentImg });
+    setPreviewUrl(currentImg ? getPublicMediaUrl(currentImg) : null);
     setUploadError(null);
+    originalImageRef.current = currentImg;
     setIsModalOpen(true);
   };
 
@@ -77,15 +85,19 @@ export default function AdminHeroPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 8 * 1024 * 1024) {
-      setUploadError("Image must be smaller than 8MB");
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+    if (!allowedTypes.includes(file.type)) {
+      setUploadError("Unsupported image format. Please select JPEG, PNG, WebP, or AVIF.");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError("Image exceeds the 10 MB limit.");
       return;
     }
 
     setUploadError(null);
     setUploadingImage(true);
-    const localObjUrl = URL.createObjectURL(file);
-    setPreviewUrl(localObjUrl);
 
     try {
       const formData = new FormData();
@@ -97,43 +109,77 @@ export default function AdminHeroPage() {
         body: formData,
       });
 
+      const data = await res.json();
       if (!res.ok) {
-        throw new Error("Upload failed on server");
+        throw new Error(data.error || "Unable to upload image to Sky Laban Media Storage.");
       }
 
-      const data = await res.json();
-      if (data.url) {
+      const storagePath = data.storagePath || data.path;
+      const publicUrl = data.publicUrl || data.url;
+
+      if (storagePath) {
         setEditingSlide((prev) => ({
           ...prev,
-          image: data.url,
+          image: storagePath,
+          desktopImage: storagePath,
         }));
-        setPreviewUrl(data.url);
+        setPreviewUrl(publicUrl || getPublicMediaUrl(storagePath));
       }
     } catch (err: any) {
-      console.error(err);
-      setUploadError(err.message || "Failed to upload image. You can also paste an image URL.");
+      console.error("[Hero Image Upload Error]:", err);
+      setUploadError(err.message || "Failed to upload image to Supabase Storage.");
     } finally {
       setUploadingImage(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingSlide?.title || !editingSlide?.image) {
-      setUploadError("Please provide title and slide image.");
+    const cleanImage = toStoragePath(editingSlide?.image);
+    if (!editingSlide?.title || !cleanImage) {
+      setUploadError("Please provide a title and upload a hero slide image.");
       return;
     }
 
     setSaving(true);
+    setUploadError(null);
+
+    const slidePayload = {
+      ...editingSlide,
+      image: cleanImage,
+      desktopImage: cleanImage,
+      image_path: cleanImage,
+    };
+
     try {
       const method = editingSlide.id ? "PUT" : "POST";
       const res = await fetch("/api/admin/hero", {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editingSlide),
+        body: JSON.stringify(slidePayload),
       });
 
       if (res.ok) {
+        // Optional cleanup: If image was replaced on an existing slide, remove old custom image
+        const oldImg = toStoragePath(originalImageRef.current);
+        if (
+          editingSlide.id &&
+          oldImg &&
+          oldImg !== cleanImage &&
+          oldImg.startsWith("hero/") &&
+          !oldImg.includes("hero-table-feast") &&
+          !oldImg.includes("hero-cafe-experience") &&
+          !oldImg.includes("hero-gift-presentation") &&
+          !oldImg.includes("hero-dessert-collection")
+        ) {
+          fetch(`/api/admin/media?path=${encodeURIComponent(oldImg)}`, {
+            method: "DELETE",
+          }).catch(() => {});
+        }
+
         setIsModalOpen(false);
         fetchSlides();
       } else {
@@ -448,31 +494,36 @@ export default function AdminHeroPage() {
                       type="file"
                       ref={fileInputRef}
                       onChange={handleFileUpload}
-                      accept="image/*"
+                      accept="image/jpeg,image/png,image/webp,image/avif"
                       className="hidden"
                     />
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploadingImage}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#EBF5FE] text-[#0754C9] hover:bg-[#DDF0FE] text-xs font-bold transition-colors"
-                    >
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>{uploadingImage ? "Uploading to Storage..." : "Upload Image"}</span>
-                    </button>
-                    <p className="text-[11px] text-slate-500">
-                      Organized into Supabase Storage <code className="text-[#0754C9]">hero/</code>. Max 8MB.
-                    </p>
-                    <input
-                      type="text"
-                      placeholder="Or enter image URL / asset path..."
-                      value={editingSlide?.image || ""}
-                      onChange={(e) => {
-                        setEditingSlide({ ...editingSlide, image: e.target.value });
-                        setPreviewUrl(e.target.value);
-                      }}
-                      className="w-full text-xs px-3 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0754C9]"
-                    />
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingImage}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0645B8] to-[#0754C9] text-white hover:from-[#063B91] hover:to-[#0645B8] text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-60"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{uploadingImage ? "Uploading to Storage..." : "Upload Image"}</span>
+                      </button>
+                    </div>
+
+                    {editingSlide?.image ? (
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider shrink-0">Storage:</span>
+                          <span className="text-xs font-mono text-[#0754C9] font-medium truncate select-all">{editingSlide.image}</span>
+                        </div>
+                        <span className="shrink-0 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
+                          Supabase Media
+                        </span>
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-slate-500 leading-relaxed">
+                        Select an image to automatically upload to Supabase Storage <code className="text-[#0754C9] font-mono">hero/</code>. Formats: JPEG, PNG, WebP, AVIF. Max 10MB.
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

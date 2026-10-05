@@ -151,8 +151,8 @@ RETURNS BOOLEAN AS $$
 BEGIN
     RETURN EXISTS (
         SELECT 1 FROM public.admin_users
-        WHERE user_id = auth.uid()
-           OR email = (SELECT email FROM auth.users WHERE id = auth.uid())
+        WHERE (user_id = auth.uid() OR id = auth.uid())
+          AND LOWER(role) IN ('admin', 'super admin', 'super_admin')
     ) OR (
         (auth.jwt() -> 'app_metadata' ->> 'role') IN ('admin', 'super_admin')
     );

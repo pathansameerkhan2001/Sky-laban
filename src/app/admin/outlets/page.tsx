@@ -17,7 +17,7 @@ import {
   Search,
 } from "lucide-react";
 import { OutletItem } from "@/lib/db";
-import { getMediaUrl } from "@/lib/media";
+import { getMediaUrl, toStoragePath } from "@/lib/media";
 
 export default function AdminOutletsPage() {
   const [outlets, setOutlets] = useState<OutletItem[]>([]);
@@ -95,13 +95,14 @@ export default function AdminOutletsPage() {
         body: formData,
       });
 
-      if (!res.ok) throw new Error("Upload failed on server");
-
       const data = await res.json();
-      if (data.url) {
+      if (!res.ok) throw new Error(data.error || "Upload failed on server");
+
+      const storagePath = toStoragePath(data.storagePath || data.path || data.url);
+      if (storagePath) {
         setEditingOutlet((prev) => ({
           ...prev,
-          image: data.url,
+          image: storagePath,
         }));
       }
     } catch (err: any) {

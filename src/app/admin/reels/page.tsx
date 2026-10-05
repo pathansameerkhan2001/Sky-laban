@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { ReelItem } from "@/lib/db";
 import { InstagramIcon } from "@/components/SocialIcons";
-import { getMediaUrl } from "@/lib/media";
+import { getMediaUrl, toStoragePath } from "@/lib/media";
 
 export default function AdminReelsPage() {
   const [reels, setReels] = useState<ReelItem[]>([]);
@@ -109,16 +109,21 @@ export default function AdminReelsPage() {
       }
 
       const data = await res.json();
-      if (data.url) {
+      if (!res.ok) {
+        throw new Error(data.error || "Upload failed on server");
+      }
+
+      const storagePath = toStoragePath(data.storagePath || data.path || data.url);
+      if (storagePath) {
         setEditingReel((prev) => ({
           ...prev,
-          image: data.url,
+          image: storagePath,
         }));
-        setPreviewUrl(data.url);
+        setPreviewUrl(data.publicUrl || data.url || getMediaUrl(storagePath));
       }
     } catch (err: any) {
       console.error(err);
-      setUploadError(err.message || "Failed to upload image. You can also paste an image URL.");
+      setUploadError(err.message || "Failed to upload image to Supabase Storage.");
     } finally {
       setUploadingImage(false);
     }
