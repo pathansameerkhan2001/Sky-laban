@@ -1,39 +1,45 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getMediaUrl } from "@/lib/media";
 import SafeImage from "@/components/SafeImage";
 
 export interface HeroSlide {
   id: string;
+  title?: string;
+  subtitle?: string;
+  tag?: string;
+  image?: string;
   desktopImage: string;
   mobileImage: string;
-  alt: string;
-  desktopObjectPosition: string;
-  mobileObjectPosition: string;
+  alt?: string;
+  desktopObjectPosition?: string;
+  mobileObjectPosition?: string;
 }
 
 const DEFAULT_HERO_SLIDES: HeroSlide[] = [
   {
     id: "table-feast",
+    title: "Signature Egyptian Desserts Feast",
     desktopImage: "/hero/hero-table-feast-desktop-hd.jpg",
     mobileImage: "/hero/hero-table-feast-mobile-hd.jpg",
-    alt: "Sky Laban Signature Egyptian Desserts Feast - Aseera, Salankatiya, Koushri, Fazea Chocola",
+    alt: "Sky Laban Signature Egyptian Desserts Feast — Handcrafted Salankatia, Koushiri, and Artisanal Cream Creations",
     desktopObjectPosition: "object-center",
-    mobileObjectPosition: "object-center",
+    mobileObjectPosition: "object-[52%_center]",
   },
   {
     id: "cafe-experience",
+    title: "A Taste Worth Coming Back For",
     desktopImage: "/hero/hero-cafe-experience-desktop-hd.jpg",
     mobileImage: "/hero/hero-cafe-experience-mobile-hd.jpg",
-    alt: "Sky Laban Authentic Egyptian Desserts - A Taste Worth Coming Back For",
+    alt: "Sky Laban Authentic Egyptian Desserts — Welcoming Dessert Lounge Experience",
     desktopObjectPosition: "object-center",
     mobileObjectPosition: "object-center",
   },
   {
     id: "gift-presentation",
+    title: "Signature Celebration Gifts",
     desktopImage: "/hero/hero-gift-presentation-desktop.jpg",
     mobileImage: "/hero/hero-gift-presentation-mobile.jpg",
     alt: "Sky Laban Signature Dessert Bowls & Ribboned Blue Gift Box Presentation",
@@ -42,6 +48,7 @@ const DEFAULT_HERO_SLIDES: HeroSlide[] = [
   },
   {
     id: "dessert-collection",
+    title: "Handcrafted Dairy Perfection",
     desktopImage: "/hero/hero-dessert-collection-desktop.jpg",
     mobileImage: "/hero/hero-dessert-collection-mobile.jpg",
     alt: "Sky Laban Complete Artisanal Dessert Collection, Bowls, and Packaging",
@@ -49,6 +56,16 @@ const DEFAULT_HERO_SLIDES: HeroSlide[] = [
     mobileObjectPosition: "object-center",
   },
 ];
+
+function getSlideAlt(slide: HeroSlide): string {
+  if (slide.alt && !slide.alt.match(/\.(png|jpe?g|webp|avif)$/i) && !slide.alt.startsWith("IMG_")) {
+    return slide.alt;
+  }
+  if (slide.title && slide.title.trim() !== "New" && !slide.title.match(/\.(png|jpe?g|webp|avif)$/i)) {
+    return `${slide.title} — Sky Laban Signature Desserts`;
+  }
+  return "Sky Laban Signature Egyptian Desserts Feast — Handcrafted Salankatia, Koushiri, and Artisanal Cream Creations";
+}
 
 export default function Hero() {
   const [slides, setSlides] = useState<HeroSlide[]>(DEFAULT_HERO_SLIDES);
@@ -66,7 +83,14 @@ export default function Hero() {
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data?.heroSlides) && data.heroSlides.length > 0 && isMounted) {
-            setSlides(data.heroSlides);
+            const normalized = data.heroSlides.map((s: any) => ({
+              ...s,
+              desktopImage: getMediaUrl(s.desktopImage || s.image),
+              mobileImage: getMediaUrl(s.mobileImage || s.desktopImage || s.image),
+              desktopObjectPosition: s.desktopObjectPosition || "object-center",
+              mobileObjectPosition: s.mobileObjectPosition || "object-[52%_center]",
+            }));
+            setSlides(normalized);
           }
         }
       } catch (err) {
@@ -89,12 +113,12 @@ export default function Hero() {
 
   // Auto-slide every 5.5s (pauses on interaction/hover)
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || slides.length <= 1) return;
     const timer = setInterval(() => {
       handleNext();
     }, 5500);
     return () => clearInterval(timer);
-  }, [isPaused, handleNext]);
+  }, [isPaused, handleNext, slides.length]);
 
   // Touch Swipe Handlers for Mobile
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -137,7 +161,13 @@ export default function Hero() {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className="hero relative w-full overflow-hidden bg-[#063B91] select-none focus:outline-none h-[56vh] sm:h-[65vh] md:h-[74vh] lg:h-[80vh] min-h-[380px] sm:min-h-[440px] max-h-[780px]"
+      className="hero relative w-full overflow-hidden bg-[#063B91] select-none focus:outline-none
+        h-[58vw] min-h-[220px] max-h-[300px]
+        sm:h-[44vw] sm:min-h-[300px] sm:max-h-[380px]
+        md:h-[36vw] md:min-h-[360px] md:max-h-[440px]
+        lg:h-[33vw] lg:min-h-[420px] lg:max-h-[500px]
+        xl:h-[31vw] xl:min-h-[440px] xl:max-h-[540px]
+        2xl:h-[28vw] 2xl:max-h-[600px]"
     >
       {/* Slides Background Track */}
       <div className="relative w-full h-full">
@@ -148,18 +178,18 @@ export default function Hero() {
             <div
               key={slide.id || idx}
               aria-hidden={!isActive}
-              className={`absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out ${
+              className={`absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out motion-reduce:transition-none ${
                 isActive
                   ? "opacity-100 z-10 pointer-events-auto"
                   : "opacity-0 z-0 pointer-events-none"
               }`}
             >
-              {/* DESKTOP HERO VIEW (Hidden on Mobile) */}
+              {/* DESKTOP HERO VIEW (Hidden on Mobile screens < 768px) */}
               <div className="hidden md:block relative w-full h-full">
                 <SafeImage
                   src={getMediaUrl(slide.desktopImage)}
                   fallbackSrc="/hero/hero-table-feast-desktop-hd.jpg"
-                  alt={slide.alt || "Sky Laban Signature Desserts"}
+                  alt={getSlideAlt(slide)}
                   fill
                   priority={idx === 0}
                   loading={idx === 0 ? "eager" : "lazy"}
@@ -168,17 +198,17 @@ export default function Hero() {
                 />
               </div>
 
-              {/* MOBILE HERO VIEW (Hidden on Desktop) */}
+              {/* MOBILE HERO VIEW (Active on Mobile screens < 768px) */}
               <div className="block md:hidden relative w-full h-full">
                 <SafeImage
                   src={getMediaUrl(slide.mobileImage || slide.desktopImage)}
                   fallbackSrc="/hero/hero-table-feast-mobile-hd.jpg"
-                  alt={slide.alt || "Sky Laban Signature Desserts"}
+                  alt={getSlideAlt(slide)}
                   fill
                   priority={idx === 0}
                   loading={idx === 0 ? "eager" : "lazy"}
                   sizes="100vw"
-                  className={`w-full h-full object-cover ${slide.mobileObjectPosition || "object-center"}`}
+                  className={`w-full h-full object-cover ${slide.mobileObjectPosition || "object-[52%_center]"}`}
                 />
               </div>
             </div>
@@ -189,49 +219,54 @@ export default function Hero() {
       {/* Accessible single H1 for SEO and Screen Readers (Visual presentation is 100% focused on product photography) */}
       <h1 className="sr-only">Sky Laban — Authentic Egyptian &amp; Middle Eastern Desserts</h1>
 
-      {/* CAROUSEL NAVIGATION: Previous Button (Frosted Pill) */}
-      <button
-        onClick={handlePrev}
-        aria-label="Previous slide"
-        className="absolute left-2.5 sm:left-6 md:left-8 top-1/2 -translate-y-1/2 z-25 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/85 hover:bg-white text-[#0754C9] shadow-[0_4px_16px_rgba(0,0,0,0.25)] border border-white/80 flex items-center justify-center transition-all duration-200 hover:scale-108 active:scale-95 cursor-pointer"
-      >
-        <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 stroke-[2.5]" />
-      </button>
+      {/* CAROUSEL CONTROLS (Only visible when multiple slides exist) */}
+      {slides.length > 1 && (
+        <>
+          {/* CAROUSEL NAVIGATION: Previous Button (Frosted Pill) */}
+          <button
+            onClick={handlePrev}
+            aria-label="Previous slide"
+            className="absolute left-2.5 sm:left-5 md:left-7 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-full bg-white/85 hover:bg-white text-[#0754C9] shadow-[0_4px_16px_rgba(0,0,0,0.22)] border border-white/80 flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0754C9]/40"
+          >
+            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 stroke-[2.5]" />
+          </button>
 
-      {/* CAROUSEL NAVIGATION: Next Button (Frosted Pill) */}
-      <button
-        onClick={handleNext}
-        aria-label="Next slide"
-        className="absolute right-2.5 sm:right-6 md:right-8 top-1/2 -translate-y-1/2 z-25 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/85 hover:bg-white text-[#0754C9] shadow-[0_4px_16px_rgba(0,0,0,0.25)] border border-white/80 flex items-center justify-center transition-all duration-200 hover:scale-108 active:scale-95 cursor-pointer"
-      >
-        <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6 stroke-[2.5]" />
-      </button>
+          {/* CAROUSEL NAVIGATION: Next Button (Frosted Pill) */}
+          <button
+            onClick={handleNext}
+            aria-label="Next slide"
+            className="absolute right-2.5 sm:right-5 md:right-7 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-full bg-white/85 hover:bg-white text-[#0754C9] shadow-[0_4px_16px_rgba(0,0,0,0.22)] border border-white/80 flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0754C9]/40"
+          >
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 stroke-[2.5]" />
+          </button>
 
-      {/* CAROUSEL PAGINATION: Discreet Center Dots */}
-      <div
-        role="tablist"
-        aria-label="Carousel Slides"
-        className="absolute bottom-2.5 sm:bottom-4 left-1/2 -translate-x-1/2 z-25 flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/30 shadow-sm"
-      >
-        {slides.map((slide, idx) => {
-          const isActive = currentSlide === idx;
+          {/* CAROUSEL PAGINATION: Discreet Center Dots */}
+          <div
+            role="tablist"
+            aria-label="Carousel Slides"
+            className="absolute bottom-2.5 sm:bottom-3.5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/20 shadow-xs"
+          >
+            {slides.map((slide, idx) => {
+              const isActive = currentSlide === idx;
 
-          return (
-            <button
-              key={slide.id || idx}
-              role="tab"
-              aria-selected={isActive}
-              aria-label={`Go to slide ${idx + 1}`}
-              onClick={() => setCurrentSlide(idx)}
-              className={`rounded-full transition-all duration-300 cursor-pointer ${
-                isActive
-                  ? "w-5 sm:w-7 h-1.5 sm:h-2 bg-[#43B8F2]"
-                  : "w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white/50 hover:bg-white/90"
-              }`}
-            />
-          );
-        })}
-      </div>
+              return (
+                <button
+                  key={slide.id || idx}
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-label={`Go to slide ${idx + 1}`}
+                  onClick={() => setCurrentSlide(idx)}
+                  className={`rounded-full transition-all duration-300 cursor-pointer ${
+                    isActive
+                      ? "w-5 sm:w-7 h-1.5 sm:h-2 bg-[#43B8F2]"
+                      : "w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white/50 hover:bg-white/90"
+                  }`}
+                />
+              );
+            })}
+          </div>
+        </>
+      )}
     </section>
   );
 }

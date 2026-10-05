@@ -950,14 +950,14 @@
   ],
   "heroSlides": [
     {
-      "title": "New",
-      "subtitle": "New-sky-laban",
-      "image": "hero/sky-laban-dessert-feast-1791183141940-6783f7.jpg",
+      "title": "Sky Laban Signature Feast",
+      "subtitle": "Authentic Egyptian Desserts",
+      "image": "hero/sky-laban-dessert-feast-1791183700386-cf154b.png",
       "order": 1,
       "isActive": true,
       "tag": "Sky Laban Signature",
-      "desktopImage": "hero/sky-laban-dessert-feast-1791183141940-6783f7.jpg",
-      "image_path": "hero/sky-laban-dessert-feast-1791183141940-6783f7.jpg",
+      "desktopImage": "hero/sky-laban-dessert-feast-1791183700386-cf154b.png",
+      "image_path": "hero/sky-laban-dessert-feast-1791183700386-cf154b.png",
       "id": "slide-muuw7zs8"
     }
   ],

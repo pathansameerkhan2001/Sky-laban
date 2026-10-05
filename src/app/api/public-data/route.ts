@@ -150,23 +150,7 @@ export async function GET() {
           .order("sort_order", { ascending: true });
 
         if (!heroErr && Array.isArray(supaHero) && supaHero.length > 0) {
-          console.log(`[Public Data] Retrieved ${supaHero.length} hero_slides from Supabase. Sample image_path: "${supaHero[0].image_path}" -> "${getPublicMediaUrl(supaHero[0].image_path)}"`);
-          heroSlides = supaHero.map((s: any) => {
-            const publicUrl = getPublicMediaUrl(s.image_path);
-            return {
-              id: s.id,
-              title: s.title || "Sky Laban",
-              subtitle: s.subtitle || "Authentic Egyptian Desserts",
-              image: s.image_path,
-              desktopImage: publicUrl,
-              mobileImage: publicUrl,
-              alt: s.alt_text || s.title || "Sky Laban Signature Desserts",
-              desktopObjectPosition: "object-center",
-              mobileObjectPosition: "object-center",
-              order: s.sort_order || 1,
-              isActive: s.is_active ?? true,
-            };
-          });
+          heroSlides = supaHero;
         }
       } catch (e: any) {
         console.warn("[Public Data] hero_slides query error:", e.message);
@@ -176,6 +160,29 @@ export async function GET() {
     }
   }
 
+  // Normalize hero slides so every slide has canonical public URLs and art direction positions
+  const normalizedHeroSlides = (heroSlides || []).map((s: any) => {
+    const rawImage = s.image || s.desktopImage || s.image_path;
+    const desktopUrl = getPublicMediaUrl(rawImage);
+    const rawMobileImage = s.mobileImage || s.mobile_image || s.mobile_image_path;
+    const mobileUrl = rawMobileImage ? getPublicMediaUrl(rawMobileImage) : desktopUrl;
+
+    return {
+      id: s.id,
+      title: s.title || "Sky Laban",
+      subtitle: s.subtitle || "",
+      tag: s.tag || "",
+      image: rawImage,
+      desktopImage: desktopUrl,
+      mobileImage: mobileUrl,
+      alt: s.alt || s.alt_text || (s.title && s.title !== "New" ? s.title : "Sky Laban Signature Egyptian Desserts Feast"),
+      desktopObjectPosition: s.desktopObjectPosition || s.desktop_object_position || "object-center",
+      mobileObjectPosition: s.mobileObjectPosition || s.mobile_object_position || "object-[52%_center]",
+      order: s.order || s.sort_order || 1,
+      isActive: s.isActive ?? s.is_active ?? true,
+    };
+  });
+
   return NextResponse.json({
     products,
     categories,
@@ -183,6 +190,6 @@ export async function GET() {
     reels,
     content,
     founders,
-    heroSlides,
+    heroSlides: normalizedHeroSlides,
   });
 }
