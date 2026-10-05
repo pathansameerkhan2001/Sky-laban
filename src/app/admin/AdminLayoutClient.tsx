@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   LayoutDashboard,
   FolderTree,
@@ -18,64 +19,149 @@ import {
   ExternalLink,
   Menu,
   X,
-  Bell,
-  ChevronDown,
-  Sparkles,
-  ShieldCheck,
   User,
+  ShieldCheck,
 } from "lucide-react";
-import { getMediaUrl } from "@/lib/media";
 
 interface AdminLayoutClientProps {
   children: React.ReactNode;
 }
 
-// Navigation items matching Sky Laban content management requirements
-const NAV_ITEMS = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/products", label: "Products", icon: ShoppingBag },
-  { href: "/admin/categories", label: "Categories", icon: FolderTree },
-  { href: "/admin/hero", label: "Hero Section", icon: Sliders },
-  { href: "/admin/outlets", label: "Outlets", icon: MapPin },
-  { href: "/admin/reels", label: "Instagram Reels", icon: Film },
-  { href: "/admin/website-content", label: "Website Content", icon: FileText },
-  { href: "/admin/media", label: "Media Library", icon: ImageIcon },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
+// Clean page metadata map for the top header
+const PAGE_META: Record<string, { title: string; description: string }> = {
+  "/admin": {
+    title: "Dashboard",
+    description: "Overview of Sky Laban website content and active media.",
+  },
+  "/admin/dashboard": {
+    title: "Dashboard",
+    description: "Overview of Sky Laban website content and active media.",
+  },
+  "/admin/hero": {
+    title: "Hero Slides",
+    description: "Manage the images and content displayed in the website hero section.",
+  },
+  "/admin/hero-slides": {
+    title: "Hero Slides",
+    description: "Manage the images and content displayed in the website hero section.",
+  },
+  "/admin/products": {
+    title: "Products",
+    description: "Manage Sky Laban products and their images.",
+  },
+  "/admin/categories": {
+    title: "Categories",
+    description: "Manage product categories and presentation order.",
+  },
+  "/admin/reels": {
+    title: "Instagram Reels",
+    description: "Manage the Instagram Reels displayed on the website.",
+  },
+  "/admin/outlets": {
+    title: "Our Outlets",
+    description: "Manage physical store locations, contact details, and status.",
+  },
+  "/admin/founders": {
+    title: "Founders",
+    description: "Manage founder profiles, roles, and images.",
+  },
+  "/admin/website-content": {
+    title: "Site Content",
+    description: "Manage core brand copy and messaging.",
+  },
+  "/admin/story": {
+    title: "Site Content",
+    description: "Manage core brand copy and messaging.",
+  },
+  "/admin/media": {
+    title: "Media Library",
+    description: "Browse, upload, and organize assets stored in sky-laban-media.",
+  },
+  "/admin/users": {
+    title: "Admin Profile",
+    description: "Manage authorized administrative access and security credentials.",
+  },
+  "/admin/settings": {
+    title: "Settings",
+    description: "Configure admin account and system preferences.",
+  },
+};
+
+// Clean navigation sections matching the commercial CMS specification
+const NAV_SECTIONS = [
+  {
+    heading: "",
+    items: [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard }],
+  },
+  {
+    heading: "Content",
+    items: [
+      { href: "/admin/hero", label: "Hero Slides", icon: Sliders },
+      { href: "/admin/products", label: "Products", icon: ShoppingBag },
+      { href: "/admin/categories", label: "Categories", icon: FolderTree },
+      { href: "/admin/reels", label: "Instagram Reels", icon: Film },
+      { href: "/admin/outlets", label: "Outlets", icon: MapPin },
+      { href: "/admin/founders", label: "Founders", icon: User },
+      { href: "/admin/website-content", label: "Site Content", icon: FileText },
+    ],
+  },
+  {
+    heading: "Media",
+    items: [{ href: "/admin/media", label: "Media Library", icon: ImageIcon }],
+  },
+  {
+    heading: "System",
+    items: [
+      { href: "/admin/users", label: "Admin Profile", icon: User },
+      { href: "/admin/settings", label: "Settings", icon: Settings },
+    ],
+  },
 ];
 
 export default function AdminLayoutClient({ children }: AdminLayoutClientProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const shouldReduceMotion = useReducedMotion();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string; role: string } | null>(null);
   const [loading, setLoading] = useState(true);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Public authentication pages that should NOT require an active session or render the admin dashboard shell
+  // Authentication pages that bypass the admin dashboard shell
   const isAuthPage =
     pathname === "/admin/login" ||
     pathname === "/admin/forgot-password" ||
     pathname === "/admin/reset-password";
 
-  // Close profile dropdown on outside click
+  // Lock body scrolling when mobile drawer is open
   useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setProfileDropdownOpen(false);
+    if (mobileMenuOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [mobileMenuOpen]);
+
+  // Keyboard accessibility: close drawer on Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && mobileMenuOpen) {
+        setMobileMenuOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, []);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [mobileMenuOpen]);
 
+  // Authenticate session
   useEffect(() => {
     if (isAuthPage) {
       setLoading(false);
       return;
     }
 
-    // Verify authenticated session via API
     fetch("/api/auth/me")
       .then((res) => {
         if (!res.ok) {
@@ -113,277 +199,386 @@ export default function AdminLayoutClient({ children }: AdminLayoutClientProps) 
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#041633] flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-3 border-[#43B8F2] border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm font-semibold text-white/90">Loading Sky Laban Admin...</span>
+          <div className="w-8 h-8 border-2 border-[#0754C9] border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs font-semibold text-slate-600">Loading Sky Laban CMS...</span>
         </div>
       </div>
     );
   }
 
+  // Derive current page title & description
+  const currentMeta = PAGE_META[pathname] || {
+    title: "Admin Panel",
+    description: "Manage Sky Laban website content and media assets.",
+  };
+
+  const isLinkActive = (href: string) => {
+    if (href === "/admin") {
+      return pathname === "/admin" || pathname === "/admin/dashboard";
+    }
+    return pathname === href || pathname.startsWith(href + "/");
+  };
+
   return (
-    <div className="min-h-screen bg-[#F4F9FD] flex text-slate-800 antialiased font-sans">
-      {/* ================= FIXED DARK NAVY-BLUE SIDEBAR (DESKTOP) ================= */}
-      <aside className="hidden lg:flex w-64 xl:w-72 flex-col bg-[#041633] text-white shrink-0 h-screen sticky top-0 z-40 border-r border-[#0A2756] shadow-xl">
+    <div className="min-h-screen bg-[#F8FAFC] flex text-slate-800 antialiased font-sans">
+      {/* ========================================================= */}
+      {/* 1. DESKTOP SIDEBAR (hidden below lg) — Width: 256px       */}
+      {/* ========================================================= */}
+      <aside className="hidden lg:flex w-64 flex-col bg-white border-r border-slate-200 shrink-0 h-screen sticky top-0 z-30 shadow-2xs">
         {/* Brand Header */}
-        <div className="p-6 pb-5 border-b border-white/10 flex items-center justify-between">
-          <Link href="/admin" className="flex items-center gap-3 group">
+        <div className="h-16 px-5 border-b border-slate-100 flex items-center justify-between">
+          <Link href="/admin" className="flex items-center gap-2.5">
             <Image
               src="/images/sky_laban_logo_transparent.png"
-              alt="Sky Laban Logo"
-              width={140}
-              height={44}
-              className="h-9 w-auto object-contain transition-transform group-hover:scale-102"
+              alt="Sky Laban"
+              width={130}
+              height={40}
+              className="h-8 w-auto object-contain"
               priority
             />
-            <span className="px-2 py-0.5 rounded-full bg-[#43B8F2]/20 text-[#43B8F2] text-[10px] font-extrabold tracking-wider uppercase border border-[#43B8F2]/30">
-              Admin
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-sky-50 text-[#0754C9] border border-sky-100">
+              CMS
             </span>
           </Link>
         </div>
 
-        {/* Navigation Items (Exactly 8 Items) */}
-        <nav className="flex-1 overflow-y-auto px-3.5 py-6 space-y-1.5 scrollbar-thin">
-          <div className="px-3 pb-2 text-[10px] font-bold text-white/40 uppercase tracking-widest">
-            Content Management
-          </div>
-
-          {NAV_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const isActive =
-              item.href === "/admin"
-                ? pathname === "/admin" || pathname === "/admin/dashboard"
-                : pathname === item.href || pathname.startsWith(item.href + "/");
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`group flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                  isActive
-                    ? "bg-[#0754C9] text-white shadow-lg shadow-[#0754C9]/40 font-bold"
-                    : "text-white/70 hover:text-white hover:bg-white/10"
-                }`}
-              >
-                <Icon
-                  className={`w-4 h-4 transition-colors ${
-                    isActive ? "text-[#43B8F2]" : "text-white/50 group-hover:text-white"
-                  }`}
-                />
-                <span className="truncate">{item.label}</span>
-                {isActive && (
-                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#43B8F2]" />
-                )}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Sidebar Footer: Logout Action Button + Live Website Link */}
-        <div className="p-4 border-t border-white/10 bg-[#031126]/60 space-y-2">
-          {/* Logout Action (Item #9) */}
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold text-rose-300 hover:text-white hover:bg-rose-600/20 border border-rose-500/20 transition-all cursor-pointer group"
-          >
-            <span className="flex items-center gap-2.5">
-              <LogOut className="w-4 h-4 text-rose-400 group-hover:text-rose-200" />
-              <span>Logout</span>
-            </span>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400/80">Exit</span>
-          </button>
-
-          {/* External Live Site Link */}
-          <Link
-            href="/"
-            target="_blank"
-            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 hover:text-white text-xs font-semibold transition-colors"
-          >
-            <span>View Live Website</span>
-            <ExternalLink className="w-3.5 h-3.5 text-[#43B8F2]" />
-          </Link>
-        </div>
-      </aside>
-
-      {/* ================= MAIN CONTENT WRAPPER ================= */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* ================= TOP HEADER ================= */}
-        <header className="bg-white border-b border-[#E0EDFA] px-4 sm:px-6 lg:px-8 py-3.5 sticky top-0 z-30 shadow-xs flex items-center justify-between gap-4">
-          {/* Mobile Menu Button + Title */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 cursor-pointer"
-              aria-label="Open Navigation Menu"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-
-            {/* Header Titles */}
-            <div>
-              <h1 className="text-lg sm:text-xl font-black text-[#063B91] tracking-tight flex items-center gap-2">
-                <span>Welcome Back!</span>
-                <span className="hidden sm:inline-block w-2 h-2 rounded-full bg-emerald-500" />
-              </h1>
-              <p className="text-xs text-slate-500 hidden sm:block">
-                Manage your Sky Laban website content, products, outlets and more.
-              </p>
-            </div>
-          </div>
-
-          {/* Right Header: Notification + Profile Dropdown */}
-          <div className="flex items-center gap-3 sm:gap-4">
-            {/* Notification Bell */}
-            <button
-              className="relative p-2 rounded-xl text-slate-500 hover:text-[#0754C9] hover:bg-[#EBF5FE] transition-colors cursor-pointer"
-              title="Notifications"
-              aria-label="Notifications"
-            >
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#0754C9] ring-2 ring-white" />
-            </button>
-
-            {/* Profile Dropdown */}
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                className="flex items-center gap-2.5 p-1.5 sm:px-3 sm:py-1.5 rounded-full hover:bg-slate-50 border border-slate-200/80 transition-all cursor-pointer"
-                aria-label="Admin Profile Menu"
-              >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#063B91] to-[#43B8F2] flex items-center justify-center text-white font-bold text-xs shadow-xs">
-                  {user?.name?.[0]?.toUpperCase() || "A"}
-                </div>
-                <div className="hidden md:block text-left pr-1">
-                  <p className="text-xs font-bold text-[#063B91] leading-tight truncate max-w-[130px]">
-                    {user?.name || "Admin"}
-                  </p>
-                  <p className="text-[10px] text-slate-400 leading-tight truncate max-w-[130px]">
-                    {user?.email || "admin@skylaban.com"}
-                  </p>
-                </div>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block" />
-              </button>
-
-              {/* Profile Menu Dropdown Card */}
-              {profileDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-[#DDF5FF] py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                  <div className="px-4 py-2.5 border-b border-slate-100">
-                    <p className="text-xs font-bold text-slate-900 truncate">{user?.name || "Admin"}</p>
-                    <p className="text-[11px] text-slate-500 truncate">{user?.email || "admin@skylaban.com"}</p>
-                    <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-[#EBF5FE] text-[#0754C9] text-[9px] font-extrabold uppercase">
-                      {user?.role || "Authorized Admin"}
-                    </span>
-                  </div>
-
-                  <div className="py-1">
-                    <Link
-                      href="/admin/settings"
-                      onClick={() => setProfileDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-[#EBF5FE] hover:text-[#0754C9] transition-colors"
-                    >
-                      <Settings className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Account Settings</span>
-                    </Link>
-
-                    <Link
-                      href="/"
-                      target="_blank"
-                      onClick={() => setProfileDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-[#EBF5FE] hover:text-[#0754C9] transition-colors"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-                      <span>View Live Website</span>
-                    </Link>
-                  </div>
-
-                  <div className="pt-1 border-t border-slate-100">
-                    <button
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer text-left"
-                    >
-                      <LogOut className="w-3.5 h-3.5 text-rose-500" />
-                      <span>Sign Out</span>
-                    </button>
-                  </div>
+        {/* Navigation Sections */}
+        <nav
+          className="flex-1 overflow-y-auto px-3 py-4 space-y-5 scrollbar-thin"
+          aria-label="Admin Sidebar Navigation"
+        >
+          {NAV_SECTIONS.map((section, idx) => (
+            <div key={idx} className="space-y-1">
+              {section.heading && (
+                <div className="px-3 pb-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider select-none">
+                  {section.heading}
                 </div>
               )}
-            </div>
-          </div>
-        </header>
-
-        {/* ================= MAIN CONTENT VIEWPORT ================= */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
-          {children}
-        </main>
-      </div>
-
-      {/* ================= MOBILE NAVIGATION DRAWER ================= */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex">
-          <div className="w-72 bg-[#041633] text-white h-full shadow-2xl flex flex-col p-4 animate-in slide-in-from-left duration-200">
-            {/* Drawer Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-white/10">
-              <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
-                <Image
-                  src="/images/sky_laban_logo_transparent.png"
-                  alt="Sky Laban"
-                  width={120}
-                  height={38}
-                  className="h-8 w-auto object-contain"
-                />
-              </Link>
-              <button
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Mobile Nav Links */}
-            <nav className="flex-1 overflow-y-auto py-4 space-y-1.5">
-              {NAV_ITEMS.map((item) => {
+              {section.items.map((item) => {
                 const Icon = item.icon;
-                const isActive =
-                  item.href === "/admin"
-                    ? pathname === "/admin" || pathname === "/admin/dashboard"
-                    : pathname === item.href || pathname.startsWith(item.href + "/");
+                const active = isLinkActive(item.href);
 
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
-                      isActive
-                        ? "bg-[#0754C9] text-white font-bold"
-                        : "text-white/70 hover:bg-white/10 hover:text-white"
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold transition-colors duration-150 select-none ${
+                      active
+                        ? "bg-[#EBF5FE] text-[#0754C9] font-bold border-r-2 border-[#0754C9]"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70"
                     }`}
                   >
-                    <Icon className="w-4 h-4" />
-                    <span>{item.label}</span>
+                    <Icon
+                      className={`w-4 h-4 shrink-0 transition-colors ${
+                        active ? "text-[#0754C9]" : "text-slate-400"
+                      }`}
+                    />
+                    <span className="truncate">{item.label}</span>
                   </Link>
                 );
               })}
-            </nav>
+            </div>
+          ))}
+        </nav>
 
-            {/* Drawer Footer */}
-            <div className="pt-3 border-t border-white/10 space-y-2">
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-300 hover:bg-rose-500/20 transition-colors text-left"
-              >
-                <LogOut className="w-4 h-4 text-rose-400" />
-                <span>Logout</span>
-              </button>
+        {/* Sidebar Footer: Profile Info + Actions */}
+        <div className="p-3 border-t border-slate-100 bg-slate-50/50 space-y-1.5">
+          {/* User info */}
+          <div className="px-2 py-1.5 flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-full bg-[#0754C9] text-white flex items-center justify-center text-xs font-bold shrink-0">
+              {user?.name?.[0]?.toUpperCase() || "A"}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-slate-900 truncate leading-tight">
+                {user?.name || "Admin"}
+              </p>
+              <p className="text-[10px] text-slate-500 truncate leading-tight">
+                {user?.email || "brandnix.in@gmail.com"}
+              </p>
             </div>
           </div>
 
-          {/* Clickable Backdrop to close */}
-          <div className="flex-1" onClick={() => setMobileMenuOpen(false)} />
+          {/* Quick External Link */}
+          <Link
+            href="/"
+            target="_blank"
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-slate-600 hover:text-[#0754C9] hover:bg-white transition-colors border border-transparent hover:border-slate-200"
+          >
+            <span className="flex items-center gap-2">
+              <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+              <span>View Website</span>
+            </span>
+          </Link>
+
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer text-left"
+          >
+            <LogOut className="w-3.5 h-3.5 text-rose-500" />
+            <span>Sign Out</span>
+          </button>
         </div>
-      )}
+      </aside>
+
+      {/* ========================================================= */}
+      {/* 2. MAIN CONTENT AREA (Desktop + Mobile)                   */}
+      {/* ========================================================= */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* ========================================================= */}
+        {/* MOBILE TOP HEADER (visible on screens < lg: 390-768px)    */}
+        {/* ========================================================= */}
+        <header className="lg:hidden relative w-full h-14 bg-white border-b border-slate-200 px-3 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
+          {/* LEFT: Hamburger Menu Button (min 44x44px touch target) */}
+          <div className="flex items-center z-10">
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(true)}
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0754C9]"
+              aria-label="Open menu"
+            >
+              <Menu className="w-5 h-5 stroke-[2]" />
+            </button>
+          </div>
+
+          {/* CENTER: Mathematically Centered Sky Laban Logo */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-auto">
+            <Link
+              href="/admin"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center justify-center focus:outline-none"
+              aria-label="Sky Laban Admin Dashboard"
+            >
+              <Image
+                src="/images/sky_laban_logo_transparent.png"
+                alt="Sky Laban"
+                width={128}
+                height={40}
+                priority
+                className="h-7 w-auto object-contain"
+              />
+            </Link>
+          </div>
+
+          {/* RIGHT: Quick Profile/Logout Button (min 44x44px touch target) */}
+          <div className="flex items-center z-10">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+              title="Logout"
+              aria-label="Sign out of admin"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </header>
+
+        {/* ========================================================= */}
+        {/* DESKTOP TOP HEADER (visible on screens >= lg)             */}
+        {/* ========================================================= */}
+        <header className="hidden lg:flex bg-white border-b border-slate-200 h-16 px-8 sticky top-0 z-20 shadow-2xs items-center justify-between gap-4">
+          {/* Dynamic Page Title & Description */}
+          <div>
+            <h1 className="text-base font-bold text-slate-900 tracking-tight leading-tight">
+              {currentMeta.title}
+            </h1>
+            <p className="text-xs text-slate-500 leading-tight mt-0.5">
+              {currentMeta.description}
+            </p>
+          </div>
+
+          {/* Right Header Actions */}
+          <div className="flex items-center gap-3">
+            {/* View Live Website Button */}
+            <Link
+              href="/"
+              target="_blank"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:text-[#0754C9] hover:border-slate-300 text-xs font-semibold transition-colors"
+            >
+              <span>View Site</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </Link>
+
+            {/* Profile Avatar Pill */}
+            <div className="flex items-center gap-2 pl-3 border-l border-slate-200 text-xs">
+              <div className="w-7 h-7 rounded-full bg-[#0754C9] text-white flex items-center justify-center font-bold text-xs shadow-2xs">
+                {user?.name?.[0]?.toUpperCase() || "A"}
+              </div>
+              <div className="text-left">
+                <span className="font-semibold text-slate-800 block leading-tight">
+                  {user?.name || "Admin"}
+                </span>
+                <span className="text-[10px] text-slate-400 block leading-tight">
+                  {user?.email || "brandnix.in@gmail.com"}
+                </span>
+              </div>
+            </div>
+
+            {/* Logout Icon */}
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors ml-1 cursor-pointer"
+              title="Sign Out"
+              aria-label="Sign out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </header>
+
+        {/* ========================================================= */}
+        {/* MAIN CONTENT VIEWPORT                                     */}
+        {/* ========================================================= */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+          {children}
+        </main>
+      </div>
+
+      {/* ========================================================= */}
+      {/* 3. MOBILE NAVIGATION DRAWER (Framer Motion)               */}
+      {/* ========================================================= */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <div
+            className="fixed inset-0 z-50 lg:hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Admin Navigation Menu"
+          >
+            {/* Backdrop Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{
+                duration: shouldReduceMotion ? 0 : 0.25,
+                ease: "easeOut",
+              }}
+              onClick={() => setMobileMenuOpen(false)}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs"
+              aria-hidden="true"
+            />
+
+            {/* Slide-in Drawer */}
+            <motion.aside
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{
+                duration: shouldReduceMotion ? 0 : 0.3,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className="fixed top-0 left-0 bottom-0 w-[84vw] max-w-[300px] bg-white z-50 shadow-2xl flex flex-col justify-between overflow-y-auto"
+            >
+              <div>
+                {/* Drawer Header */}
+                <div className="h-14 px-4 border-b border-slate-100 flex items-center justify-between">
+                  <Link
+                    href="/admin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2"
+                  >
+                    <Image
+                      src="/images/sky_laban_logo_transparent.png"
+                      alt="Sky Laban"
+                      width={120}
+                      height={36}
+                      className="h-7 w-auto object-contain"
+                    />
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-sky-50 text-[#0754C9] border border-sky-100">
+                      CMS
+                    </span>
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                    aria-label="Close menu"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Mobile Navigation Links */}
+                <nav className="p-3 space-y-4">
+                  {NAV_SECTIONS.map((section, idx) => (
+                    <div key={idx} className="space-y-1">
+                      {section.heading && (
+                        <div className="px-3 pb-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                          {section.heading}
+                        </div>
+                      )}
+                      {section.items.map((item) => {
+                        const Icon = item.icon;
+                        const active = isLinkActive(item.href);
+
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={`min-h-[44px] flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold transition-colors ${
+                              active
+                                ? "bg-[#EBF5FE] text-[#0754C9] font-bold border-r-2 border-[#0754C9]"
+                                : "text-slate-700 hover:bg-slate-100"
+                            }`}
+                          >
+                            <Icon
+                              className={`w-4 h-4 shrink-0 ${
+                                active ? "text-[#0754C9]" : "text-slate-400"
+                              }`}
+                            />
+                            <span>{item.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </nav>
+              </div>
+
+              {/* Drawer Footer Actions */}
+              <div className="p-3 border-t border-slate-100 bg-slate-50/50 space-y-2">
+                <div className="px-3 py-1">
+                  <p className="text-xs font-semibold text-slate-900 truncate">
+                    {user?.name || "Admin"}
+                  </p>
+                  <p className="text-[10px] text-slate-500 truncate">
+                    {user?.email || "brandnix.in@gmail.com"}
+                  </p>
+                </div>
+
+                <Link
+                  href="/"
+                  target="_blank"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="min-h-[44px] w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:text-[#0754C9] transition-colors"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>View Live Website</span>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="min-h-[44px] w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </motion.aside>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -170,52 +170,51 @@ export default function AdminMediaPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header Strip */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-2xs">
         <div>
-          <h1 className="text-2xl font-black text-[#063B91] tracking-tight flex items-center gap-2.5">
-            <ImageIcon className="w-6 h-6 text-[#0754C9]" />
-            <span>Central Media Library</span>
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Browse and manage files in the <code className="bg-[#EBF5FE] text-[#0754C9] px-1.5 py-0.5 rounded font-mono">sky-laban-media</code> Supabase Storage bucket.
+          <h1 className="text-lg font-bold text-slate-900 tracking-tight">Media Library</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Browse and manage files in the <code className="bg-sky-50 text-[#0754C9] px-1 py-0.5 rounded font-mono">sky-laban-media</code> Supabase Storage bucket.
           </p>
         </div>
 
         <button
+          type="button"
           onClick={() => setIsUploadOpen(true)}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0754C9] hover:bg-[#0645B8] text-white text-xs font-bold shadow-md shadow-[#0754C9]/25 transition-all hover:scale-102 active:scale-98 cursor-pointer self-start sm:self-auto"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#0754C9] hover:bg-[#0645B8] text-white text-xs font-semibold shadow-2xs transition-colors self-start sm:self-auto"
         >
-          <Upload className="w-4 h-4" />
+          <Upload className="w-3.5 h-3.5" />
           <span>Upload Image</span>
         </button>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="p-4 rounded-2xl bg-white border border-[#DDF5FF] shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className="p-3 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         {/* Search */}
-        <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+        <div className="relative flex-1 max-w-sm">
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by filename, folder or component..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 focus:border-[#0754C9] text-xs text-slate-800 outline-none"
+            placeholder="Search filename or reference..."
+            className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 focus:border-[#0754C9] text-xs text-slate-800 outline-none"
           />
         </div>
 
         {/* Folder Filter Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-          <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
+          <Filter className="w-3 h-3 text-slate-400 shrink-0" />
           {FOLDERS.map((f) => (
             <button
               key={f.id}
+              type="button"
               onClick={() => setSelectedFolder(f.id)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap transition-colors ${
                 selectedFolder === f.id
-                  ? "bg-[#0754C9] text-white shadow-xs"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  ? "bg-[#0754C9] text-white"
+                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
               }`}
             >
               {f.label}

@@ -33,6 +33,8 @@ export interface OutletItem {
   status: "existing" | "upcoming";
   mapsUrl?: string;
   order?: number;
+  phone?: string;
+  image?: string;
 }
 
 export interface ReelItem {

@@ -1,27 +1,24 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
-  Award,
+  User,
   Plus,
   Edit2,
   Trash2,
   X,
-  Upload,
   CheckCircle2,
   Eye,
   EyeOff,
   ArrowUp,
   ArrowDown,
-  Sparkles,
   RefreshCw,
-  Image as ImageIcon,
-  Compass,
-  ShieldCheck,
+  ImageIcon,
 } from "lucide-react";
 import { FounderItem } from "@/lib/db";
-import { uploadSkyLabanMedia } from "@/lib/upload";
+import { getMediaUrl, toStoragePath } from "@/lib/media";
+import AdminImageUpload from "@/components/admin/AdminImageUpload";
 
 export default function AdminFoundersPage() {
   const [founders, setFounders] = useState<FounderItem[]>([]);
@@ -29,11 +26,8 @@ export default function AdminFoundersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingFounder, setEditingFounder] = useState<Partial<FounderItem> | null>(null);
   const [saving, setSaving] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchFounders = async () => {
     try {
@@ -58,63 +52,42 @@ export default function AdminFoundersPage() {
     setEditingFounder({
       name: "",
       title: "",
-      image: "/images/Founder1(1).png",
+      image: "",
       description: "",
       order: founders.length + 1,
       isActive: true,
     });
-    setPreviewUrl("/images/Founder1(1).png");
-    setUploadError(null);
+    setFormError(null);
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (founder: FounderItem) => {
     setEditingFounder({ ...founder });
-    setPreviewUrl(founder.image || null);
-    setUploadError(null);
+    setFormError(null);
     setIsModalOpen(true);
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadError(null);
-    setUploadingImage(true);
-
-    try {
-      const res = await uploadSkyLabanMedia({ file, folder: "founders" });
-      if (!res.success) {
-        throw new Error(res.error || "Upload failed on server");
-      }
-
-      setEditingFounder((prev) => ({
-        ...prev,
-        image: res.storagePath,
-      }));
-      setPreviewUrl(res.publicUrl);
-    } catch (err: any) {
-      console.error(err);
-      setUploadError(err.message || "Failed to upload image. You can also paste an image URL.");
-    } finally {
-      setUploadingImage(false);
-    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingFounder?.name || !editingFounder?.title || !editingFounder?.image) {
-      setUploadError("Please provide name, title, and photograph.");
+    if (!editingFounder?.name?.trim() || !editingFounder?.title?.trim()) {
+      setFormError("Name and role title are required.");
       return;
     }
 
     setSaving(true);
+    setFormError(null);
+
+    const payload = {
+      ...editingFounder,
+      image: toStoragePath(editingFounder.image),
+    };
+
     try {
       const method = editingFounder.id ? "PUT" : "POST";
       const res = await fetch("/api/admin/founders", {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editingFounder),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
@@ -122,10 +95,10 @@ export default function AdminFoundersPage() {
         fetchFounders();
       } else {
         const errData = await res.json();
-        setUploadError(errData.error || "Failed to save founder record.");
+        setFormError(errData.error || "Failed to save founder record.");
       }
     } catch (err: any) {
-      setUploadError(err.message || "Failed to save founder record.");
+      setFormError(err.message || "Failed to save founder record.");
     } finally {
       setSaving(false);
     }
@@ -135,7 +108,7 @@ export default function AdminFoundersPage() {
     try {
       const updated = { ...founder, isActive: !founder.isActive };
       const res = await fetch("/api/admin/founders", {
-        method: "PUT",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updated),
       });
@@ -161,20 +134,20 @@ export default function AdminFoundersPage() {
     const swapIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
     const targetFounder = founders[swapIndex];
 
-    const updatedCurrent = { ...founder, order: targetFounder.order };
-    const updatedTarget = { ...targetFounder, order: founder.order };
+    const currentOrder = founder.order || currentIndex + 1;
+    const targetOrder = targetFounder.order || swapIndex + 1;
 
     try {
       await Promise.all([
         fetch("/api/admin/founders", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedCurrent),
+          body: JSON.stringify({ ...founder, order: targetOrder }),
         }),
         fetch("/api/admin/founders", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedTarget),
+          body: JSON.stringify({ ...targetFounder, order: currentOrder }),
         }),
       ]);
       fetchFounders();
@@ -185,12 +158,14 @@ export default function AdminFoundersPage() {
 
   const handleDelete = async (id: string) => {
     try {
-      const res = await fetch(`/api/admin/founders?id=${id}`, {
+      const res = await fetch(`/api/admin/founders?id=${encodeURIComponent(id)}`, {
         method: "DELETE",
       });
       if (res.ok) {
         setFounders((prev) => prev.filter((f) => f.id !== id));
         setDeleteConfirmId(null);
+      } else {
+        alert("Failed to delete founder record.");
       }
     } catch (err) {
       console.error("Delete error:", err);
@@ -198,274 +173,233 @@ export default function AdminFoundersPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="rounded-3xl bg-gradient-to-r from-[#063B91] via-[#0645B8] to-[#0754C9] p-6 sm:p-8 text-white shadow-[0_15px_35px_rgba(6,59,145,0.18)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5 pb-12">
+      {/* Header Strip */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-2xs">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-[#DDF5FF] text-xs font-bold uppercase tracking-wider mb-2.5">
-            <Sparkles className="w-3.5 h-3.5 text-[#43B8F2]" />
-            <span>Leadership &amp; Vision</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Founders Section Management
-          </h1>
-          <p className="text-sm text-white/80 mt-1 max-w-xl">
-            Manage the founders profiles displayed on the homepage. Founder 1: B. Akram Ali Khan, Founder 2: B. Aslam Ali Khan.
+          <h1 className="text-lg font-bold text-slate-900 tracking-tight">Founders</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Manage founder profiles, roles, and images.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={fetchFounders}
-            className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-            title="Refresh list"
+            className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+            title="Refresh"
+            aria-label="Refresh founders"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </button>
           <button
+            type="button"
             onClick={handleOpenAdd}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-[#063B91] hover:bg-[#DDF5FF] font-bold text-xs sm:text-sm shadow-md transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#0754C9] hover:bg-[#0645B8] text-white text-xs font-semibold shadow-2xs transition-colors"
           >
-            <Plus className="w-4 h-4 text-[#0754C9]" />
-            <span>Add Founder Profile</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Founder</span>
           </button>
         </div>
       </div>
 
-      {/* Founders List */}
-      <div className="bg-white rounded-2xl border border-[#E0EDFA] shadow-xs overflow-hidden">
-        <div className="p-5 border-b border-[#E0EDFA] flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Award className="w-4 h-4 text-[#0754C9]" />
-            <span className="text-sm font-bold text-slate-800 uppercase tracking-wider">
-              Active Profiles ({founders.length})
-            </span>
-          </div>
-          <span className="text-xs text-slate-500 font-medium">
-            Desktop &amp; Mobile will follow this exact display order
-          </span>
-        </div>
-
+      {/* Main List */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-slate-400">Loading founders...</div>
+          <div className="p-8 space-y-3">
+            {[1, 2].map((i) => (
+              <div key={i} className="h-20 bg-slate-100 rounded-lg animate-pulse" />
+            ))}
+          </div>
         ) : founders.length === 0 ? (
-          <div className="p-12 text-center text-slate-400">No founder profiles configured.</div>
+          <div className="p-12 text-center text-xs text-slate-400">
+            No founder records configured. Click &quot;Add Founder&quot; above.
+          </div>
         ) : (
           <div className="divide-y divide-slate-100">
-            {founders.map((founder, index) => {
-              const isFirst = index === 0;
-              return (
-                <div
-                  key={founder.id}
-                  className="p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-5 hover:bg-slate-50/60 transition-colors"
-                >
-                  <div className="flex items-start sm:items-center gap-4">
-                    {/* Display Order Badge */}
-                    <div className="w-8 h-8 rounded-full bg-[#EBF5FE] text-[#0754C9] font-black text-sm flex items-center justify-center shrink-0 border border-[#DDF5FF]">
-                      #{founder.order}
-                    </div>
+            {founders.map((founder, index) => (
+              <div
+                key={founder.id}
+                className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/60 transition-colors"
+              >
+                <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+                  <div className="w-7 h-7 rounded-lg bg-sky-50 text-[#0754C9] font-bold text-xs flex items-center justify-center shrink-0 border border-sky-100">
+                    #{founder.order || index + 1}
+                  </div>
 
-                    {/* Photo Thumbnail */}
-                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-white ring-2 ring-[#DDF5FF] bg-slate-100 shrink-0 shadow-sm">
+                  <div className="relative w-14 h-18 sm:w-16 sm:h-20 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                    {founder.image ? (
                       <Image
-                        src={founder.image}
+                        src={getMediaUrl(founder.image)}
                         alt={founder.name}
                         fill
                         className="object-cover"
                       />
-                    </div>
-
-                    {/* Info */}
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-base sm:text-lg font-extrabold text-[#063B91]">
-                          {founder.name}
-                        </h3>
-                        <span className="px-2.5 py-0.5 rounded-full bg-[#EBF5FE] text-[#0754C9] text-xs font-bold border border-[#DDF5FF]">
-                          {founder.title}
-                        </span>
-                        {founder.isActive ? (
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
-                            Active / Visible
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold">
-                            Draft / Hidden
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs sm:text-sm text-slate-600 line-clamp-2 max-w-2xl font-normal leading-relaxed">
-                        {founder.description}
-                      </p>
-                      <div className="text-[11px] text-slate-400 font-mono">
-                        Asset: {founder.image}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Actions Strip */}
-                  <div className="flex items-center gap-2 self-end md:self-center shrink-0">
-                    {/* Reorder Buttons */}
-                    <div className="flex items-center border border-[#E0EDFA] rounded-xl bg-white p-0.5">
-                      <button
-                        onClick={() => handleReorder(founder, "up")}
-                        disabled={index === 0}
-                        className="p-1.5 text-slate-500 hover:text-[#0754C9] disabled:opacity-30 disabled:cursor-not-allowed"
-                        title="Move Up"
-                      >
-                        <ArrowUp className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleReorder(founder, "down")}
-                        disabled={index === founders.length - 1}
-                        className="p-1.5 text-slate-500 hover:text-[#0754C9] disabled:opacity-30 disabled:cursor-not-allowed"
-                        title="Move Down"
-                      >
-                        <ArrowDown className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-
-                    {/* Toggle Active */}
-                    <button
-                      onClick={() => handleTogglePublish(founder)}
-                      className={`p-2 rounded-xl border transition-colors ${
-                        founder.isActive
-                          ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
-                          : "bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200"
-                      }`}
-                      title={founder.isActive ? "Hide from website" : "Publish on website"}
-                    >
-                      {founder.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                    </button>
-
-                    {/* Edit */}
-                    <button
-                      onClick={() => handleOpenEdit(founder)}
-                      className="p-2 rounded-xl bg-[#EBF5FE] border border-[#DDF5FF] text-[#0754C9] hover:bg-[#DDF0FE] transition-colors"
-                      title="Edit Profile"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-
-                    {/* Delete */}
-                    {deleteConfirmId === founder.id ? (
-                      <div className="flex items-center gap-1.5 bg-red-50 p-1 rounded-xl border border-red-200">
-                        <span className="text-[10px] text-red-700 font-bold px-1">Confirm?</span>
-                        <button
-                          onClick={() => handleDelete(founder.id)}
-                          className="px-2 py-1 bg-red-600 text-white rounded-lg text-[10px] font-bold"
-                        >
-                          Yes
-                        </button>
-                        <button
-                          onClick={() => setDeleteConfirmId(null)}
-                          className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-[10px] text-slate-600"
-                        >
-                          No
-                        </button>
-                      </div>
                     ) : (
-                      <button
-                        onClick={() => setDeleteConfirmId(founder.id)}
-                        className="p-2 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-200 transition-colors"
-                        title="Delete Profile"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <ImageIcon className="w-5 h-5 text-slate-300" />
                     )}
                   </div>
+
+                  <div className="min-w-0 space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-sm font-bold text-slate-900 truncate">
+                        {founder.name}
+                      </h2>
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                          founder.isActive
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : "bg-slate-100 text-slate-500"
+                        }`}
+                      >
+                        {founder.isActive ? "Active" : "Draft"}
+                      </span>
+                    </div>
+
+                    <p className="text-xs font-semibold text-[#0754C9] truncate">
+                      {founder.title}
+                    </p>
+
+                    <p className="text-xs text-slate-500 line-clamp-2 max-w-xl">
+                      {founder.description}
+                    </p>
+
+                    <p className="text-[10px] font-mono text-slate-400 truncate">
+                      Storage: {founder.image}
+                    </p>
+                  </div>
                 </div>
-              );
-            })}
+
+                {/* Actions */}
+                <div className="flex items-center gap-1.5 self-end md:self-center shrink-0">
+                  <div className="flex items-center border border-slate-200 rounded-lg bg-white p-0.5">
+                    <button
+                      type="button"
+                      onClick={() => handleReorder(founder, "up")}
+                      disabled={index === 0}
+                      className="p-1 text-slate-500 hover:text-[#0754C9] disabled:opacity-30 disabled:cursor-not-allowed"
+                      title="Move Up"
+                      aria-label="Move Up"
+                    >
+                      <ArrowUp className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleReorder(founder, "down")}
+                      disabled={index === founders.length - 1}
+                      className="p-1 text-slate-500 hover:text-[#0754C9] disabled:opacity-30 disabled:cursor-not-allowed"
+                      title="Move Down"
+                      aria-label="Move Down"
+                    >
+                      <ArrowDown className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleTogglePublish(founder)}
+                    className={`p-2 rounded-lg border transition-colors ${
+                      founder.isActive
+                        ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
+                        : "bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200"
+                    }`}
+                    title={founder.isActive ? "Deactivate" : "Activate"}
+                    aria-label={founder.isActive ? "Deactivate" : "Activate"}
+                  >
+                    {founder.isActive ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEdit(founder)}
+                    className="p-2 rounded-lg bg-sky-50 border border-sky-100 text-[#0754C9] hover:bg-sky-100 transition-colors"
+                    title="Edit Founder"
+                    aria-label="Edit Founder"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+
+                  {deleteConfirmId === founder.id ? (
+                    <div className="flex items-center gap-1 bg-rose-50 p-1 rounded-lg border border-rose-200">
+                      <span className="text-[10px] text-rose-700 font-bold px-1">Del?</span>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(founder.id)}
+                        className="px-2 py-0.5 bg-rose-600 text-white rounded text-[10px] font-bold"
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteConfirmId(null)}
+                        className="px-2 py-0.5 bg-white border border-slate-200 rounded text-[10px] text-slate-600"
+                      >
+                        No
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setDeleteConfirmId(founder.id)}
+                      className="p-2 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-200 transition-colors"
+                      title="Delete Founder"
+                      aria-label="Delete Founder"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Edit / Add Modal */}
+      {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-[#DDF5FF] max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <Award className="w-5 h-5 text-[#0754C9]" />
-                <h3 className="text-lg font-bold text-[#063B91]">
+                <User className="w-4 h-4 text-[#0754C9]" />
+                <h3 className="text-sm font-bold text-slate-900">
                   {editingFounder?.id ? "Edit Founder Profile" : "Add Founder Profile"}
                 </h3>
               </div>
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                aria-label="Close modal"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="space-y-4 mt-5">
-              {uploadError && (
-                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl">
-                  {uploadError}
+            <form onSubmit={handleSave} className="space-y-3.5 mt-4">
+              {formError && (
+                <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-lg">
+                  {formError}
                 </div>
               )}
 
-              {/* Photo Upload & Preview */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                  Founder Photograph
-                </label>
-                <div className="flex items-center gap-4">
-                  <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-[#DDF5FF] bg-slate-100 shrink-0 shadow-sm">
-                    {previewUrl ? (
-                      <Image
-                        src={previewUrl}
-                        alt="Founder Preview"
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-400">
-                        <ImageIcon className="w-8 h-8" />
-                      </div>
-                    )}
-                  </div>
+              {/* Founder Image Upload */}
+              <AdminImageUpload
+                folder="founders"
+                value={editingFounder?.image}
+                onChange={(path) =>
+                  setEditingFounder((prev) => ({ ...prev, image: path }))
+                }
+                label="Founder Photograph"
+                helperText="Upload portrait photograph to sky-laban-media/founders"
+                aspectRatio="portrait"
+                required
+              />
 
-                  <div className="flex-1 space-y-2">
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileUpload}
-                      accept="image/*"
-                      className="hidden"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploadingImage}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#EBF5FE] text-[#0754C9] hover:bg-[#DDF0FE] text-xs font-bold transition-colors"
-                    >
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>{uploadingImage ? "Uploading to Storage..." : "Upload Photo"}</span>
-                    </button>
-                    <p className="text-[11px] text-slate-500">
-                      Organized into Supabase Storage <code className="text-[#0754C9]">founders/</code>. Max 8MB.
-                    </p>
-                    <input
-                      type="text"
-                      placeholder="Or enter image URL / asset path..."
-                      value={editingFounder?.image || ""}
-                      onChange={(e) => {
-                        setEditingFounder({ ...editingFounder, image: e.target.value });
-                        setPreviewUrl(e.target.value);
-                      }}
-                      className="w-full text-xs px-3 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0754C9]"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Name */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Full Name
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Full Name <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -473,50 +407,46 @@ export default function AdminFoundersPage() {
                   placeholder="e.g. B. Akram Ali Khan"
                   value={editingFounder?.name || ""}
                   onChange={(e) =>
-                    setEditingFounder({ ...editingFounder, name: e.target.value })
+                    setEditingFounder((prev) => ({ ...prev, name: e.target.value }))
                   }
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0754C9]"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-[#0754C9]"
                 />
               </div>
 
-              {/* Title */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Title / Role
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Role / Title <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Founder & Chief Visionary"
+                  placeholder="e.g. Founder & Managing Director"
                   value={editingFounder?.title || ""}
                   onChange={(e) =>
-                    setEditingFounder({ ...editingFounder, title: e.target.value })
+                    setEditingFounder((prev) => ({ ...prev, title: e.target.value }))
                   }
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0754C9]"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-[#0754C9]"
                 />
               </div>
 
-              {/* Description */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Description / Bio
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Bio / Description
                 </label>
                 <textarea
-                  rows={4}
-                  required
-                  placeholder="Concise bio and contribution to Sky Laban..."
+                  rows={3}
+                  placeholder="Leadership vision, background in artisanal dessert craft..."
                   value={editingFounder?.description || ""}
                   onChange={(e) =>
-                    setEditingFounder({ ...editingFounder, description: e.target.value })
+                    setEditingFounder((prev) => ({ ...prev, description: e.target.value }))
                   }
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0754C9]"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-[#0754C9]"
                 />
               </div>
 
-              {/* Display Order & Status */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Display Order
                   </label>
                   <input
@@ -524,28 +454,28 @@ export default function AdminFoundersPage() {
                     min={1}
                     value={editingFounder?.order || 1}
                     onChange={(e) =>
-                      setEditingFounder({
-                        ...editingFounder,
+                      setEditingFounder((prev) => ({
+                        ...prev,
                         order: parseInt(e.target.value) || 1,
-                      })
+                      }))
                     }
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0754C9]"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-[#0754C9]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Status
                   </label>
                   <select
                     value={editingFounder?.isActive ? "active" : "draft"}
                     onChange={(e) =>
-                      setEditingFounder({
-                        ...editingFounder,
+                      setEditingFounder((prev) => ({
+                        ...prev,
                         isActive: e.target.value === "active",
-                      })
+                      }))
                     }
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0754C9]"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-[#0754C9]"
                   >
                     <option value="active">Active / Visible</option>
                     <option value="draft">Draft / Hidden</option>
@@ -553,22 +483,21 @@ export default function AdminFoundersPage() {
                 </div>
               </div>
 
-              {/* Submit Buttons */}
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 text-xs font-semibold"
+                  className="px-3.5 py-2 rounded-lg text-slate-600 hover:bg-slate-100 text-xs font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#0754C9] text-white hover:bg-[#0645B8] text-xs font-bold shadow-md shadow-[#0754C9]/20 disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#0754C9] text-white hover:bg-[#0645B8] text-xs font-semibold shadow-xs disabled:opacity-50"
                 >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>{saving ? "Saving..." : "Save Profile"}</span>
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>{saving ? "Saving..." : "Save Founder"}</span>
                 </button>
               </div>
             </form>

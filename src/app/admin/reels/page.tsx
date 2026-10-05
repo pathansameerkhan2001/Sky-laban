@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   Film,
@@ -9,21 +9,17 @@ import {
   Trash2,
   X,
   ExternalLink,
-  Play,
-  Upload,
-  CheckCircle2,
   Eye,
   EyeOff,
   ArrowUp,
   ArrowDown,
-  Sparkles,
   RefreshCw,
-  Image as ImageIcon,
+  ImageIcon,
+  CheckCircle2,
 } from "lucide-react";
 import { ReelItem } from "@/lib/db";
-import { InstagramIcon } from "@/components/SocialIcons";
 import { getMediaUrl, toStoragePath } from "@/lib/media";
-import { uploadSkyLabanMedia } from "@/lib/upload";
+import AdminImageUpload from "@/components/admin/AdminImageUpload";
 
 export default function AdminReelsPage() {
   const [reels, setReels] = useState<ReelItem[]>([]);
@@ -31,10 +27,8 @@ export default function AdminReelsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingReel, setEditingReel] = useState<Partial<ReelItem> | null>(null);
   const [saving, setSaving] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const fetchReels = async () => {
     try {
@@ -42,7 +36,6 @@ export default function AdminReelsPage() {
       const res = await fetch("/api/admin/reels");
       if (res.ok) {
         const data = await res.json();
-        // Sort by order
         setReels(data.sort((a: ReelItem, b: ReelItem) => (a.order || 0) - (b.order || 0)));
       }
     } catch (err) {
@@ -62,46 +55,18 @@ export default function AdminReelsPage() {
       number: nextNum,
       title: "",
       url: "https://www.instagram.com/reel/",
-      image: `/images/reel_${((reels.length % 8) + 1)}.jpg`,
+      image: "",
       order: reels.length + 1,
       isActive: true,
     });
-    setPreviewUrl(`/images/reel_${((reels.length % 8) + 1)}.jpg`);
-    setUploadError(null);
+    setFormError(null);
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (reel: ReelItem) => {
     setEditingReel({ ...reel });
-    setPreviewUrl(reel.image || null);
-    setUploadError(null);
+    setFormError(null);
     setIsModalOpen(true);
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadError(null);
-    setUploadingImage(true);
-
-    try {
-      const res = await uploadSkyLabanMedia({ file, folder: "reels" });
-      if (!res.success) {
-        throw new Error(res.error || "Upload failed on server");
-      }
-
-      setEditingReel((prev) => ({
-        ...prev,
-        image: res.storagePath,
-      }));
-      setPreviewUrl(res.publicUrl);
-    } catch (err: any) {
-      console.error(err);
-      setUploadError(err.message || "Failed to upload image to Supabase Storage.");
-    } finally {
-      setUploadingImage(false);
-    }
   };
 
   const handleTogglePublish = async (reel: ReelItem) => {
@@ -118,7 +83,7 @@ export default function AdminReelsPage() {
         );
       }
     } catch {
-      alert("Failed to update status");
+      alert("Failed to update status.");
     }
   };
 
@@ -131,69 +96,68 @@ export default function AdminReelsPage() {
     }
 
     const targetIndex = direction === "up" ? index - 1 : index + 1;
-    const newReels = [...reels];
-    const currentItem = newReels[index];
-    const targetItem = newReels[targetIndex];
+    const currentItem = reels[index];
+    const targetItem = reels[targetIndex];
 
-    // Swap orders
-    const currentOrder = currentItem.order;
-    currentItem.order = targetItem.order;
-    targetItem.order = currentOrder;
-
-    // Swap in array
-    newReels[index] = targetItem;
-    newReels[targetIndex] = currentItem;
-
-    setReels(newReels);
+    const currentOrder = currentItem.order || index + 1;
+    const targetOrder = targetItem.order || targetIndex + 1;
 
     try {
       await Promise.all([
         fetch("/api/admin/reels", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(currentItem),
+          body: JSON.stringify({ ...currentItem, order: targetOrder }),
         }),
         fetch("/api/admin/reels", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(targetItem),
+          body: JSON.stringify({ ...targetItem, order: currentOrder }),
         }),
       ]);
-    } catch (err) {
-      console.error("Failed saving reorder:", err);
       fetchReels();
+    } catch (err) {
+      console.error("Reorder failed:", err);
     }
   };
 
-  const handleDelete = async (id: string, number: string) => {
-    if (!window.confirm(`Are you sure you want to delete Reel #${number}?`)) return;
-
+  const handleDelete = async (id: string) => {
     try {
       const res = await fetch(`/api/admin/reels?id=${encodeURIComponent(id)}`, {
         method: "DELETE",
       });
       if (res.ok) {
         setReels((prev) => prev.filter((r) => r.id !== id));
+        setDeleteConfirmId(null);
+      } else {
+        alert("Failed to delete reel.");
       }
     } catch {
-      alert("Failed to delete reel");
+      alert("Error deleting reel.");
     }
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingReel?.url || !editingReel?.image) {
-      alert("Please provide both an Instagram URL and a thumbnail image.");
+    if (!editingReel?.url?.trim() || !editingReel?.image) {
+      setFormError("Please provide an Instagram URL and a thumbnail image.");
       return;
     }
 
     setSaving(true);
+    setFormError(null);
+
+    const payload = {
+      ...editingReel,
+      image: toStoragePath(editingReel.image),
+    };
+
     try {
       const method = editingReel.id ? "PUT" : "POST";
       const res = await fetch("/api/admin/reels", {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editingReel),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
@@ -201,407 +165,326 @@ export default function AdminReelsPage() {
         setIsModalOpen(false);
       } else {
         const err = await res.json();
-        alert(err.error || "Failed to save reel");
+        setFormError(err.error || "Failed to save reel.");
       }
-    } catch (err) {
-      console.error(err);
-      alert("Network error saving reel");
+    } catch (err: any) {
+      setFormError(err.message || "Failed to save reel.");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top Banner & Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-3xl border border-[#DDF5FF] shadow-xs">
+    <div className="space-y-5 pb-12">
+      {/* Header Strip */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-2xs">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EBF5FE] text-[#0754C9] text-[11px] font-extrabold uppercase tracking-wider mb-2">
-            <Film className="w-3.5 h-3.5" />
-            <span>Moments of Pure Delight</span>
-          </div>
-          <h1 className="text-2xl font-black text-[#063B91] tracking-tight">
-            Instagram Reels Showcase
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Display authentic 9:16 vertical cover images, actual Instagram links, captions, and manage carousel sequence order.
+          <h1 className="text-lg font-bold text-slate-900 tracking-tight">Instagram Reels</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Manage the Instagram Reels displayed on the website.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={fetchReels}
-            disabled={loading}
-            className="p-2.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors"
-            title="Refresh reels"
+            className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+            title="Refresh"
+            aria-label="Refresh reels"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </button>
-
           <button
+            type="button"
             onClick={handleOpenAdd}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0754C9] hover:bg-[#0645B8] text-white text-xs font-bold shadow-md shadow-[#0754C9]/20 transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#0754C9] hover:bg-[#0645B8] text-white text-xs font-semibold shadow-2xs transition-colors"
           >
-            <Plus className="w-4 h-4" />
-            <span>Add New Reel</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Reel</span>
           </button>
         </div>
       </div>
 
-      {/* Summary Chips */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white p-3.5 rounded-2xl border border-slate-100 shadow-xs flex items-center justify-between">
-          <span className="text-xs font-medium text-slate-500">Total Reels</span>
-          <span className="text-lg font-black text-[#063B91]">{reels.length}</span>
-        </div>
-        <div className="bg-white p-3.5 rounded-2xl border border-slate-100 shadow-xs flex items-center justify-between">
-          <span className="text-xs font-medium text-slate-500">Published</span>
-          <span className="text-lg font-black text-emerald-600">
-            {reels.filter((r) => r.isActive !== false).length}
-          </span>
-        </div>
-        <div className="bg-white p-3.5 rounded-2xl border border-slate-100 shadow-xs flex items-center justify-between">
-          <span className="text-xs font-medium text-slate-500">Draft / Hidden</span>
-          <span className="text-lg font-black text-amber-600">
-            {reels.filter((r) => r.isActive === false).length}
-          </span>
-        </div>
-        <div className="bg-white p-3.5 rounded-2xl border border-slate-100 shadow-xs flex items-center justify-between">
-          <span className="text-xs font-medium text-slate-500">Section Location</span>
-          <span className="text-[11px] font-bold text-[#0754C9] truncate">Before Outlets</span>
-        </div>
-      </div>
-
-      {/* Reels Showcase Grid Preview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {reels.map((reel, index) => (
-          <div
-            key={reel.id}
-            className={`group relative rounded-3xl overflow-hidden bg-slate-900 border-2 shadow-md hover:shadow-xl transition-all flex flex-col justify-between aspect-[9/16] ${
-              reel.isActive !== false ? "border-white" : "border-amber-400/80 opacity-75"
-            }`}
-          >
-            {/* Thumbnail Image */}
-            <Image
-              src={getMediaUrl(reel.image || "/images/reel_1.jpg")}
-              alt={reel.title || `Reel ${reel.number}`}
-              fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-
-            {/* Subtle Gradient Overlays */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/40 pointer-events-none" />
-
-            {/* Top Bar: Sequence Number, Status & External Link */}
-            <div className="relative z-10 p-3 flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <span className="font-mono text-[11px] font-black px-2.5 py-0.5 rounded-full bg-black/60 text-white border border-white/20 backdrop-blur-md">
-                  #{reel.number}
-                </span>
-                <span
-                  className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full backdrop-blur-md ${
-                    reel.isActive !== false
-                      ? "bg-emerald-500/80 text-white"
-                      : "bg-amber-500/80 text-white"
-                  }`}
-                >
-                  {reel.isActive !== false ? "Live" : "Draft"}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => handleTogglePublish(reel)}
-                  className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white hover:text-[#0754C9] transition-colors"
-                  title={reel.isActive !== false ? "Hide from website" : "Publish to website"}
-                >
-                  {reel.isActive !== false ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                </button>
-                <a
-                  href={reel.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white hover:text-[#0754C9] transition-colors"
-                  title="Open Reel on Instagram"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            </div>
-
-            {/* Center: Play Overlay */}
-            <div className="relative z-10 flex items-center justify-center pointer-events-none">
-              <div className="w-11 h-11 rounded-full bg-white/80 text-[#0754C9] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <Play className="w-5 h-5 fill-current translate-x-0.5" />
-              </div>
-            </div>
-
-            {/* Bottom Bar: Title, Order & Actions */}
-            <div className="relative z-10 p-3.5 bg-black/75 backdrop-blur-md border-t border-white/10 space-y-2">
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-xs font-bold text-white line-clamp-2 leading-tight">
-                  {reel.title || `Reel ${reel.number}`}
-                </p>
-                <span className="shrink-0 text-[10px] font-mono text-slate-300">
-                  Ord: {reel.order}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between pt-1 border-t border-white/10">
-                {/* Reorder Buttons */}
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => handleMoveOrder(index, "up")}
-                    disabled={index === 0}
-                    className="p-1 rounded bg-white/10 text-white hover:bg-white/25 disabled:opacity-30 disabled:cursor-not-allowed"
-                    title="Move earlier in carousel"
-                  >
-                    <ArrowUp className="w-3 h-3" />
-                  </button>
-                  <button
-                    onClick={() => handleMoveOrder(index, "down")}
-                    disabled={index === reels.length - 1}
-                    className="p-1 rounded bg-white/10 text-white hover:bg-white/25 disabled:opacity-30 disabled:cursor-not-allowed"
-                    title="Move later in carousel"
-                  >
-                    <ArrowDown className="w-3 h-3" />
-                  </button>
-                </div>
-
-                {/* Edit & Delete */}
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => handleOpenEdit(reel)}
-                    className="px-2.5 py-1 rounded-lg bg-white/15 hover:bg-white text-white hover:text-[#0754C9] text-[11px] font-bold transition-colors flex items-center gap-1"
-                  >
-                    <Edit2 className="w-3 h-3" />
-                    <span>Edit</span>
-                  </button>
-                  <button
-                    onClick={() => handleDelete(reel.id, reel.number)}
-                    className="p-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white transition-colors"
-                    title="Delete Reel"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                </div>
-              </div>
-            </div>
+      {/* Main Content Area */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+        {loading ? (
+          <div className="p-8 space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-16 bg-slate-100 rounded-lg animate-pulse" />
+            ))}
           </div>
-        ))}
+        ) : reels.length === 0 ? (
+          <div className="p-12 text-center text-xs text-slate-400">
+            No reels configured. Click &quot;Add Reel&quot; above.
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {reels.map((reel, index) => (
+              <div
+                key={reel.id}
+                className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/60 transition-colors"
+              >
+                <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+                  <div className="w-7 h-7 rounded-lg bg-pink-50 text-[#D12B9A] font-bold text-xs flex items-center justify-center shrink-0 border border-pink-100">
+                    #{reel.number || index + 1}
+                  </div>
+
+                  <div className="relative w-14 h-20 sm:w-16 sm:h-24 rounded-lg bg-slate-900 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                    {reel.image ? (
+                      <Image
+                        src={getMediaUrl(reel.image)}
+                        alt={reel.title || "Reel thumbnail"}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <ImageIcon className="w-4 h-4 text-slate-400" />
+                    )}
+                  </div>
+
+                  <div className="min-w-0 space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-sm font-bold text-slate-900 truncate">
+                        {reel.title || `Reel #${reel.number}`}
+                      </h2>
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                          reel.isActive
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : "bg-slate-100 text-slate-500"
+                        }`}
+                      >
+                        {reel.isActive ? "Active" : "Draft"}
+                      </span>
+                    </div>
+
+                    <a
+                      href={reel.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-[#0754C9] hover:underline font-mono truncate max-w-md"
+                    >
+                      <span className="truncate">{reel.url}</span>
+                      <ExternalLink className="w-3 h-3 shrink-0" />
+                    </a>
+
+                    <p className="text-[10px] font-mono text-slate-400 truncate">
+                      Storage: {reel.image}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-1.5 self-end md:self-center shrink-0">
+                  <div className="flex items-center border border-slate-200 rounded-lg bg-white p-0.5">
+                    <button
+                      type="button"
+                      onClick={() => handleMoveOrder(index, "up")}
+                      disabled={index === 0}
+                      className="p-1 text-slate-500 hover:text-[#0754C9] disabled:opacity-30 disabled:cursor-not-allowed"
+                      title="Move Up"
+                      aria-label="Move Up"
+                    >
+                      <ArrowUp className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleMoveOrder(index, "down")}
+                      disabled={index === reels.length - 1}
+                      className="p-1 text-slate-500 hover:text-[#0754C9] disabled:opacity-30 disabled:cursor-not-allowed"
+                      title="Move Down"
+                      aria-label="Move Down"
+                    >
+                      <ArrowDown className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleTogglePublish(reel)}
+                    className={`p-2 rounded-lg border transition-colors ${
+                      reel.isActive
+                        ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
+                        : "bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200"
+                    }`}
+                    title={reel.isActive ? "Deactivate" : "Activate"}
+                    aria-label={reel.isActive ? "Deactivate" : "Activate"}
+                  >
+                    {reel.isActive ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEdit(reel)}
+                    className="p-2 rounded-lg bg-sky-50 border border-sky-100 text-[#0754C9] hover:bg-sky-100 transition-colors"
+                    title="Edit Reel"
+                    aria-label="Edit Reel"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+
+                  {deleteConfirmId === reel.id ? (
+                    <div className="flex items-center gap-1 bg-rose-50 p-1 rounded-lg border border-rose-200">
+                      <span className="text-[10px] text-rose-700 font-bold px-1">Del?</span>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(reel.id)}
+                        className="px-2 py-0.5 bg-rose-600 text-white rounded text-[10px] font-bold"
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteConfirmId(null)}
+                        className="px-2 py-0.5 bg-white border border-slate-200 rounded text-[10px] text-slate-600"
+                      >
+                        No
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setDeleteConfirmId(reel.id)}
+                      className="p-2 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-200 transition-colors"
+                      title="Delete Reel"
+                      aria-label="Delete Reel"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Add / Edit Reel Modal */}
-      {isModalOpen && editingReel && (
-        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-[#DDF5FF] overflow-hidden my-8">
-            <div className="p-5 border-b border-[#E0EDFA] bg-gradient-to-r from-[#EBF5FE] to-white flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-extrabold text-[#063B91]">
-                  {editingReel.id ? "Edit Instagram Reel Card" : "Add New Reel Card"}
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Film className="w-4 h-4 text-[#0754C9]" />
+                <h3 className="text-sm font-bold text-slate-900">
+                  {editingReel?.id ? "Edit Instagram Reel" : "Add Instagram Reel"}
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Set actual reel cover thumbnail, title, Instagram URL and carousel position.
-                </p>
               </div>
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                aria-label="Close modal"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="p-6 space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Sequence Number */}
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Sequence Number *</label>
-                  <input
-                    type="text"
-                    required
-                    value={editingReel.number || ""}
-                    onChange={(e) => setEditingReel({ ...editingReel, number: e.target.value })}
-                    placeholder="01, 02, etc."
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#0754C9] outline-none text-xs"
-                  />
-                  <p className="text-[10px] text-slate-400 mt-1">Displayed as #01 badge on card</p>
+            <form onSubmit={handleSave} className="space-y-3.5 mt-4">
+              {formError && (
+                <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-lg">
+                  {formError}
                 </div>
+              )}
 
-                {/* Display Order */}
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Display Order</label>
-                  <input
-                    type="number"
-                    value={editingReel.order || 1}
-                    onChange={(e) =>
-                      setEditingReel({ ...editingReel, order: Number(e.target.value) })
-                    }
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#0754C9] outline-none text-xs"
-                  />
-                  <p className="text-[10px] text-slate-400 mt-1">Lower numbers appear first</p>
-                </div>
-              </div>
+              <AdminImageUpload
+                folder="reels"
+                value={editingReel?.image}
+                onChange={(path) =>
+                  setEditingReel((prev) => ({ ...prev, image: path }))
+                }
+                label="Reel Thumbnail"
+                helperText="Upload 9:16 vertical thumbnail image"
+                aspectRatio="portrait"
+                required
+              />
 
-              {/* Title */}
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Reel Title / Caption *</label>
-                <input
-                  type="text"
-                  required
-                  value={editingReel.title || ""}
-                  onChange={(e) => setEditingReel({ ...editingReel, title: e.target.value })}
-                  placeholder="e.g. Signature Salankatia Pour"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#0754C9] outline-none text-xs"
-                />
-              </div>
-
-              {/* Exact Instagram URL */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block font-bold text-slate-700">Instagram Reel URL *</label>
-                  {editingReel.url && editingReel.url.startsWith("http") && (
-                    <a
-                      href={editingReel.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[11px] font-bold text-[#0754C9] hover:underline flex items-center gap-1"
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                      <span>Test link</span>
-                    </a>
-                  )}
-                </div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Instagram Reel URL <span className="text-rose-500">*</span>
+                </label>
                 <input
                   type="url"
                   required
-                  value={editingReel.url || ""}
-                  onChange={(e) => setEditingReel({ ...editingReel, url: e.target.value })}
                   placeholder="https://www.instagram.com/reel/..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#0754C9] outline-none text-xs"
+                  value={editingReel?.url || ""}
+                  onChange={(e) =>
+                    setEditingReel((prev) => ({ ...prev, url: e.target.value }))
+                  }
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-[#0754C9]"
                 />
               </div>
 
-              {/* Thumbnail Image Upload & Live Preview Section */}
-              <div className="p-4 rounded-2xl bg-[#f8fbfe] border border-[#DDF5FF] space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="font-bold text-slate-800 flex items-center gap-1.5">
-                    <ImageIcon className="w-4 h-4 text-[#0754C9]" />
-                    <span>Real Thumbnail Image (9:16 Vertical) *</span>
-                  </label>
-                  <span className="text-[10px] text-slate-400">Stores in Supabase / Local storage</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
-                  {/* Preview Box */}
-                  <div className="relative aspect-[9/16] w-28 mx-auto sm:mx-0 rounded-2xl overflow-hidden bg-slate-900 border-2 border-[#43B8F2] shadow-md shrink-0">
-                    {previewUrl ? (
-                      <Image
-                        src={getMediaUrl(previewUrl)}
-                        alt="Preview"
-                        fill
-                        className="object-cover"
-                        unoptimized={previewUrl.startsWith("blob:")}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-500 text-[10px]">
-                        No image
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-7 h-7 rounded-full bg-white/80 text-[#0754C9] flex items-center justify-center">
-                        <Play className="w-3.5 h-3.5 fill-current translate-x-0.2" />
-                      </div>
-                    </div>
-                    <div className="absolute bottom-1.5 inset-x-1.5 text-center pointer-events-none">
-                      <span className="text-[9px] font-bold text-white line-clamp-1 drop-shadow-xs">
-                        {editingReel.title || "Preview"}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Upload Controls */}
-                  <div className="sm:col-span-2 space-y-2.5">
-                    {/* File Upload Button */}
-                    <div>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        className="hidden"
-                        onChange={handleFileUpload}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={uploadingImage}
-                        className="w-full py-2.5 px-3 rounded-xl border border-dashed border-[#0754C9] hover:bg-[#EBF5FE]/50 text-[#0754C9] font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
-                      >
-                        <Upload className="w-4 h-4" />
-                        <span>{uploadingImage ? "Uploading to Storage..." : "Upload New Thumbnail Image"}</span>
-                      </button>
-                    </div>
-
-                    <div className="text-[10px] text-slate-400 text-center">or specify image URL:</div>
-
-                    {/* Direct Image Path/URL Input */}
-                    <input
-                      type="text"
-                      required
-                      value={editingReel.image || ""}
-                      onChange={(e) => {
-                        setEditingReel({ ...editingReel, image: e.target.value });
-                        setPreviewUrl(e.target.value);
-                      }}
-                      placeholder="/images/reel_1.jpg or https://..."
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#0754C9] outline-none text-xs"
-                    />
-
-                    {uploadError && (
-                      <p className="text-[11px] font-bold text-rose-500">{uploadError}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Published Toggle */}
-              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
-                <div>
-                  <span className="font-bold text-slate-800 block">Published / Active Status</span>
-                  <span className="text-[11px] text-slate-500">
-                    When active, this reel appears in the carousel on the website.
-                  </span>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={editingReel.isActive !== false}
-                    onChange={(e) =>
-                      setEditingReel({ ...editingReel, isActive: e.target.checked })
-                    }
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0754C9]"></div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Reel Title / Caption
                 </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Founder Message — Opening in Kondapur"
+                  value={editingReel?.title || ""}
+                  onChange={(e) =>
+                    setEditingReel((prev) => ({ ...prev, title: e.target.value }))
+                  }
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-[#0754C9]"
+                />
               </div>
 
-              {/* Action Buttons */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Display Order
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={editingReel?.order || 1}
+                    onChange={(e) =>
+                      setEditingReel((prev) => ({
+                        ...prev,
+                        order: parseInt(e.target.value) || 1,
+                      }))
+                    }
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-[#0754C9]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Status
+                  </label>
+                  <select
+                    value={editingReel?.isActive ? "active" : "draft"}
+                    onChange={(e) =>
+                      setEditingReel((prev) => ({
+                        ...prev,
+                        isActive: e.target.value === "active",
+                      }))
+                    }
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-[#0754C9]"
+                  >
+                    <option value="active">Active / Visible</option>
+                    <option value="draft">Draft / Hidden</option>
+                  </select>
+                </div>
+              </div>
+
               <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-colors"
+                  className="px-3.5 py-2 rounded-lg text-slate-600 hover:bg-slate-100 text-xs font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={saving || uploadingImage}
-                  className="px-6 py-2.5 rounded-xl bg-[#0754C9] text-white hover:bg-[#0645B8] font-bold shadow-md cursor-pointer disabled:opacity-60 transition-all"
+                  disabled={saving}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#0754C9] text-white hover:bg-[#0645B8] text-xs font-semibold shadow-xs disabled:opacity-50"
                 >
-                  {saving ? "Saving..." : "Save Reel Card"}
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>{saving ? "Saving..." : "Save Reel"}</span>
                 </button>
               </div>
             </form>

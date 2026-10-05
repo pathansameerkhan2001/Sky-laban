@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   MapPin,
@@ -9,16 +9,15 @@ import {
   Trash2,
   X,
   ExternalLink,
-  Filter,
-  CheckCircle2,
-  Upload,
-  Image as ImageIcon,
-  Phone,
   Search,
+  CheckCircle2,
+  Phone,
+  RefreshCw,
+  ImageIcon,
 } from "lucide-react";
 import { OutletItem } from "@/lib/db";
 import { getMediaUrl, toStoragePath } from "@/lib/media";
-import { uploadSkyLabanMedia } from "@/lib/upload";
+import AdminImageUpload from "@/components/admin/AdminImageUpload";
 
 export default function AdminOutletsPage() {
   const [outlets, setOutlets] = useState<OutletItem[]>([]);
@@ -28,9 +27,8 @@ export default function AdminOutletsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingOutlet, setEditingOutlet] = useState<Partial<OutletItem & { image?: string; phone?: string; isActive?: boolean }> | null>(null);
   const [saving, setSaving] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const fetchOutlets = async () => {
     try {
@@ -57,82 +55,72 @@ export default function AdminOutletsPage() {
       city: "",
       state: "Telangana",
       address: "",
+      phone: "+91 98765 43210",
       status: "existing",
       mapsUrl: "",
       order: outlets.length + 1,
-      image: "/images/store_kondapur.jpg",
-      phone: "+91 98765 43210",
+      image: "",
       isActive: true,
     });
-    setUploadError(null);
+    setFormError(null);
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (outlet: OutletItem) => {
-    setEditingOutlet({ ...outlet, isActive: (outlet as any).isActive !== false });
-    setUploadError(null);
+    setEditingOutlet({ ...outlet });
+    setFormError(null);
     setIsModalOpen(true);
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadError(null);
-    setUploadingImage(true);
-
-    try {
-      const res = await uploadSkyLabanMedia({ file, folder: "outlets" });
-      if (!res.success) {
-        throw new Error(res.error || "Upload failed on server");
-      }
-
-      setEditingOutlet((prev) => ({
-        ...prev,
-        image: res.storagePath,
-      }));
-    } catch (err: any) {
-      setUploadError(err.message || "Failed uploading outlet image.");
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
-  const handleDelete = async (id: string, name: string) => {
-    if (!window.confirm(`Delete outlet location "${name}" permanently?`)) return;
-
+  const handleDelete = async (id: string) => {
     try {
       const res = await fetch(`/api/admin/outlets?id=${encodeURIComponent(id)}`, {
         method: "DELETE",
       });
       if (res.ok) {
         setOutlets((prev) => prev.filter((o) => o.id !== id));
+        setDeleteConfirmId(null);
       } else {
         alert("Failed to delete outlet.");
       }
     } catch {
-      alert("Failed to delete outlet");
+      alert("Error deleting outlet.");
     }
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingOutlet?.city || !editingOutlet?.name) return;
+    if (!editingOutlet?.name?.trim() || !editingOutlet?.city?.trim()) {
+      setFormError("Outlet name and city are required.");
+      return;
+    }
 
     setSaving(true);
+    setFormError(null);
+
+    const payload = {
+      ...editingOutlet,
+      image: toStoragePath(editingOutlet.image),
+    };
+
     try {
       const method = editingOutlet.id ? "PUT" : "POST";
       const res = await fetch("/api/admin/outlets", {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editingOutlet),
+        body: JSON.stringify(payload),
       });
+
       if (res.ok) {
         await fetchOutlets();
         setIsModalOpen(false);
+      } else {
+        const err = await res.json();
+        setFormError(err.error || "Failed to save outlet.");
       }
     } catch (err) {
       console.error(err);
+      setFormError("Network error saving outlet.");
     } finally {
       setSaving(false);
     }
@@ -158,327 +146,401 @@ export default function AdminOutletsPage() {
   });
 
   return (
-    <div className="space-y-6">
-      {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5 pb-12">
+      {/* Header Strip */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-2xs">
         <div>
-          <h1 className="text-2xl font-black text-[#063B91] tracking-tight">Outlets &amp; Presence Map</h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Manage operational retail branches, upcoming locations, Google Maps links, and store photos.
+          <h1 className="text-lg font-bold text-slate-900 tracking-tight">Our Outlets</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Manage physical store locations, contact details, and status.
           </p>
         </div>
 
-        <button
-          onClick={handleOpenAdd}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#0754C9] hover:bg-[#0645B8] text-white text-xs font-bold shadow-md shadow-[#0754C9]/20 transition-all cursor-pointer self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add New Outlet</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={fetchOutlets}
+            className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+            title="Refresh"
+            aria-label="Refresh outlets"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          </button>
+          <button
+            type="button"
+            onClick={handleOpenAdd}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#0754C9] hover:bg-[#0645B8] text-white text-xs font-semibold shadow-2xs transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Outlet</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="p-4 rounded-2xl bg-white border border-[#E0EDFA] shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-        <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+      <div className="p-3 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by branch name, city, address..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 focus:border-[#0754C9] text-xs text-slate-800 outline-none"
+            placeholder="Search branches..."
+            className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 focus:border-[#0754C9] text-xs text-slate-800 outline-none"
           />
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
-          <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+        <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg text-xs font-semibold">
           {[
-            { id: "all", label: "All Outlets" },
-            { id: "existing", label: "Existing (Operational)" },
-            { id: "upcoming", label: "Upcoming Expansion" },
-            { id: "telangana", label: "Telangana" },
-            { id: "andhra pradesh", label: "Andhra Pradesh" },
-            { id: "tamil nadu", label: "Tamil Nadu" },
-            { id: "karnataka", label: "Karnataka" },
-            { id: "kerala", label: "Kerala" },
-          ].map((tab) => (
+            { id: "all", label: "All" },
+            { id: "existing", label: "Open" },
+            { id: "upcoming", label: "Upcoming" },
+          ].map((f) => (
             <button
-              key={tab.id}
-              onClick={() => setFilterState(tab.id)}
-              className={`px-3 py-1.5 rounded-full font-semibold whitespace-nowrap transition-colors cursor-pointer ${
-                filterState === tab.id ? "bg-[#0754C9] text-white shadow-xs" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              key={f.id}
+              type="button"
+              onClick={() => setFilterState(f.id)}
+              className={`px-2.5 py-1 rounded text-[11px] transition-colors ${
+                filterState === f.id ? "bg-white text-[#0754C9] shadow-2xs font-bold" : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              {tab.label}
+              {f.label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Outlets Table */}
-      <div className="rounded-2xl bg-white border border-[#E0EDFA] shadow-xs overflow-hidden">
+      {/* Outlets Content Area */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
         {loading ? (
-          <div className="py-16 text-center text-xs text-slate-400">Loading branch outlets...</div>
+          <div className="p-8 space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-16 bg-slate-100 rounded-lg animate-pulse" />
+            ))}
+          </div>
         ) : filtered.length === 0 ? (
-          <div className="py-16 text-center text-xs text-slate-400">No outlets match the selected filter.</div>
+          <div className="p-12 text-center text-xs text-slate-400">
+            No outlets found. Click &quot;Add Outlet&quot; above.
+          </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50/75 border-b border-[#E0EDFA] text-slate-500 uppercase tracking-wider font-bold">
-                <tr>
-                  <th className="py-3 px-4">Store Image</th>
-                  <th className="py-3 px-4">Branch &amp; City</th>
-                  <th className="py-3 px-4">State</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Order</th>
-                  <th className="py-3 px-4">Google Maps</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
-                {filtered.map((outlet) => (
-                  <tr key={outlet.id} className="hover:bg-[#F8FCFF] transition-colors">
-                    <td className="py-3 px-4">
-                      <div className="relative w-12 h-10 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0">
-                        <Image
-                          src={getMediaUrl((outlet as any).image || "/images/store_shaikpet.jpg")}
-                          alt={outlet.name}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-3.5 h-3.5 text-[#0754C9] shrink-0" />
-                        <div>
-                          <span className="font-bold text-[#063B91] block">{outlet.name}</span>
-                          <span className="text-[11px] text-slate-400">{outlet.address || outlet.city}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 font-semibold text-slate-600">{outlet.state}</td>
-                    <td className="py-3 px-4">
+          <div className="divide-y divide-slate-100">
+            {filtered.map((outlet, index) => (
+              <div
+                key={outlet.id}
+                className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/60 transition-colors"
+              >
+                <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center shrink-0 border border-emerald-100">
+                    #{outlet.order || index + 1}
+                  </div>
+
+                  <div className="relative w-12 h-12 rounded-lg bg-slate-50 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                    {outlet.image ? (
+                      <Image
+                        src={getMediaUrl(outlet.image)}
+                        alt={outlet.name}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <MapPin className="w-5 h-5 text-slate-400" />
+                    )}
+                  </div>
+
+                  <div className="min-w-0 space-y-0.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="text-sm font-bold text-slate-900 truncate">
+                        {outlet.name}
+                      </h2>
                       <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                        className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                           outlet.status === "existing"
                             ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            : "bg-sky-50 text-[#0754C9] border border-sky-200"
+                            : "bg-amber-50 text-amber-700 border border-amber-200"
                         }`}
                       >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            outlet.status === "existing" ? "bg-emerald-500" : "bg-[#43B8F2]"
-                          }`}
-                        />
-                        <span>{outlet.status === "existing" ? "Operational" : "Upcoming"}</span>
+                        {outlet.status === "existing" ? "Operational" : "Upcoming"}
                       </span>
-                    </td>
-                    <td className="py-3 px-4 font-mono font-bold text-slate-500">#{outlet.order || 1}</td>
-                    <td className="py-3 px-4">
-                      {outlet.mapsUrl ? (
+                    </div>
+
+                    <p className="text-xs text-slate-500 truncate max-w-md">
+                      {outlet.city}, {outlet.state} • {outlet.address}
+                    </p>
+
+                    <div className="flex items-center gap-3 text-[11px] text-slate-400">
+                      {outlet.phone && (
+                        <span className="flex items-center gap-1">
+                          <Phone className="w-3 h-3 text-slate-400" />
+                          <span>{outlet.phone}</span>
+                        </span>
+                      )}
+                      {outlet.mapsUrl && (
                         <a
                           href={outlet.mapsUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-[#0754C9] hover:underline font-semibold"
+                          className="inline-flex items-center gap-0.5 text-[#0754C9] hover:underline"
                         >
-                          <span>Directions</span>
-                          <ExternalLink className="w-3 h-3" />
+                          <span>Google Maps</span>
+                          <ExternalLink className="w-2.5 h-2.5" />
                         </a>
-                      ) : (
-                        <span className="text-slate-300">Pending</span>
                       )}
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          onClick={() => handleOpenEdit(outlet)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-[#0754C9] hover:bg-[#EBF5FE] transition-colors cursor-pointer"
-                          title="Edit Outlet"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(outlet.id, outlet.name)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                          title="Delete Outlet"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-1.5 self-end md:self-center shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEdit(outlet)}
+                    className="p-2 rounded-lg bg-sky-50 border border-sky-100 text-[#0754C9] hover:bg-sky-100 transition-colors"
+                    title="Edit Outlet"
+                    aria-label="Edit Outlet"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+
+                  {deleteConfirmId === outlet.id ? (
+                    <div className="flex items-center gap-1 bg-rose-50 p-1 rounded-lg border border-rose-200">
+                      <span className="text-[10px] text-rose-700 font-bold px-1">Del?</span>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(outlet.id)}
+                        className="px-2 py-0.5 bg-rose-600 text-white rounded text-[10px] font-bold"
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteConfirmId(null)}
+                        className="px-2 py-0.5 bg-white border border-slate-200 rounded text-[10px] text-slate-600"
+                      >
+                        No
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setDeleteConfirmId(outlet.id)}
+                      className="p-2 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-200 transition-colors"
+                      title="Delete Outlet"
+                      aria-label="Delete Outlet"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Add / Edit Outlet Modal */}
-      {isModalOpen && editingOutlet && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-[#DDF5FF] overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-150">
-            <div className="p-5 border-b border-[#E0EDFA] bg-gradient-to-r from-[#EBF5FE] to-white flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-extrabold text-[#063B91]">
-                  {editingOutlet.id ? "Edit Outlet Location" : "Add New Outlet Branch"}
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-[#0754C9]" />
+                <h3 className="text-sm font-bold text-slate-900">
+                  {editingOutlet?.id ? "Edit Outlet Location" : "Add Outlet Location"}
                 </h3>
-                <p className="text-xs text-slate-500">Manage address, Google Maps directions, and store status.</p>
               </div>
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                aria-label="Close modal"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="p-5 space-y-4 text-xs">
-              {uploadError && (
-                <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
-                  {uploadError}
+            <form onSubmit={handleSave} className="space-y-3.5 mt-4">
+              {formError && (
+                <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-lg">
+                  {formError}
                 </div>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Branch Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={editingOutlet.name || ""}
-                    onChange={(e) => setEditingOutlet({ ...editingOutlet, name: e.target.value })}
-                    placeholder="e.g. Kondapur Branch"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#0754C9] outline-none"
-                  />
-                </div>
+              {/* Outlet Image */}
+              <AdminImageUpload
+                folder="outlets"
+                value={editingOutlet?.image}
+                onChange={(path) =>
+                  setEditingOutlet((prev) => ({ ...prev, image: path }))
+                }
+                label="Storefront Image (Optional)"
+                helperText="Upload store photo to sky-laban-media/outlets"
+                aspectRatio="video"
+              />
 
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">City *</label>
-                  <input
-                    type="text"
-                    required
-                    value={editingOutlet.city || ""}
-                    onChange={(e) => setEditingOutlet({ ...editingOutlet, city: e.target.value })}
-                    placeholder="e.g. Kondapur, Hyderabad"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#0754C9] outline-none"
-                  />
-                </div>
+              {/* Outlet Name */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Outlet / Branch Name <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Kondapur Flagship Lounge"
+                  value={editingOutlet?.name || ""}
+                  onChange={(e) =>
+                    setEditingOutlet((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-[#0754C9]"
+                />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* City and State */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">State *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    City <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Hyderabad"
+                    value={editingOutlet?.city || ""}
+                    onChange={(e) =>
+                      setEditingOutlet((prev) => ({ ...prev, city: e.target.value }))
+                    }
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-[#0754C9]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    State
+                  </label>
                   <select
-                    value={editingOutlet.state || "Telangana"}
-                    onChange={(e) => setEditingOutlet({ ...editingOutlet, state: e.target.value as OutletItem["state"] })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#0754C9] outline-none bg-white"
+                    value={editingOutlet?.state || "Telangana"}
+                    onChange={(e) =>
+                      setEditingOutlet((prev) => ({
+                        ...prev,
+                        state: e.target.value as OutletItem["state"],
+                      }))
+                    }
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs bg-white focus:outline-none focus:border-[#0754C9]"
                   >
                     <option value="Telangana">Telangana</option>
                     <option value="Andhra Pradesh">Andhra Pradesh</option>
                     <option value="Tamil Nadu">Tamil Nadu</option>
+                    <option value="Goa">Goa</option>
                     <option value="Karnataka">Karnataka</option>
                     <option value="Kerala">Kerala</option>
-                    <option value="Goa">Goa</option>
                   </select>
                 </div>
+              </div>
 
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Status *</label>
-                  <select
-                    value={editingOutlet.status || "existing"}
-                    onChange={(e) => setEditingOutlet({ ...editingOutlet, status: e.target.value as "existing" | "upcoming" })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#0754C9] outline-none bg-white"
-                  >
-                    <option value="existing">Existing (Open)</option>
-                    <option value="upcoming">Upcoming</option>
-                  </select>
-                </div>
+              {/* Address */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Street Address
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Full physical address or landmark..."
+                  value={editingOutlet?.address || ""}
+                  onChange={(e) =>
+                    setEditingOutlet((prev) => ({ ...prev, address: e.target.value }))
+                  }
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-[#0754C9]"
+                />
+              </div>
 
+              {/* Phone & Maps URL */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Display Order</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Contact Phone
+                  </label>
                   <input
-                    type="number"
-                    min="1"
-                    value={editingOutlet.order || 1}
-                    onChange={(e) => setEditingOutlet({ ...editingOutlet, order: parseInt(e.target.value) || 1 })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#0754C9] outline-none"
+                    type="text"
+                    placeholder="e.g. +91 98765 43210"
+                    value={editingOutlet?.phone || ""}
+                    onChange={(e) =>
+                      setEditingOutlet((prev) => ({ ...prev, phone: e.target.value }))
+                    }
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-[#0754C9]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Google Maps URL
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://maps.google.com/..."
+                    value={editingOutlet?.mapsUrl || ""}
+                    onChange={(e) =>
+                      setEditingOutlet((prev) => ({ ...prev, mapsUrl: e.target.value }))
+                    }
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-[#0754C9]"
                   />
                 </div>
               </div>
 
-              {/* Outlet Storefront Image Upload */}
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Storefront Photo</label>
-                <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#F8FCFF] border border-[#DDF5FF]">
-                  <div className="relative w-14 h-12 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
-                    <Image
-                      src={getMediaUrl(editingOutlet.image || "/images/store_shaikpet.jpg")}
-                      alt="Store Preview"
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
+              {/* Status and Order */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Outlet Status
+                  </label>
+                  <select
+                    value={editingOutlet?.status || "existing"}
+                    onChange={(e) =>
+                      setEditingOutlet((prev) => ({
+                        ...prev,
+                        status: e.target.value as "existing" | "upcoming",
+                      }))
+                    }
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-[#0754C9]"
+                  >
+                    <option value="existing">Existing / Operational</option>
+                    <option value="upcoming">Upcoming Expansion</option>
+                  </select>
+                </div>
 
-                  <div className="flex-1 space-y-1">
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileUpload}
-                      accept="image/*"
-                      className="hidden"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploadingImage}
-                      className="px-3 py-1.5 rounded-lg bg-[#EBF5FE] text-[#0754C9] text-xs font-bold hover:bg-[#DDF0FE] cursor-pointer"
-                    >
-                      {uploadingImage ? "Uploading..." : "Upload Store Photo"}
-                    </button>
-                    <span className="text-[10px] text-slate-400 block">Saves to `sky-laban-media/outlets/`</span>
-                  </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Display Order
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={editingOutlet?.order || 1}
+                    onChange={(e) =>
+                      setEditingOutlet((prev) => ({
+                        ...prev,
+                        order: parseInt(e.target.value) || 1,
+                      }))
+                    }
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-[#0754C9]"
+                  />
                 </div>
               </div>
 
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Physical Address</label>
-                <textarea
-                  rows={2}
-                  value={editingOutlet.address || ""}
-                  onChange={(e) => setEditingOutlet({ ...editingOutlet, address: e.target.value })}
-                  placeholder="Street address, landmark, locality..."
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#0754C9] outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Google Maps Link</label>
-                <input
-                  type="text"
-                  value={editingOutlet.mapsUrl || ""}
-                  onChange={(e) => setEditingOutlet({ ...editingOutlet, mapsUrl: e.target.value })}
-                  placeholder="https://maps.app.goo.gl/..."
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#0754C9] outline-none"
-                />
-              </div>
-
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              {/* Submit Buttons */}
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold"
+                  className="px-3.5 py-2 rounded-lg text-slate-600 hover:bg-slate-100 text-xs font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-5 py-2 rounded-xl bg-[#0754C9] text-white hover:bg-[#0645B8] font-bold shadow-md cursor-pointer disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#0754C9] text-white hover:bg-[#0645B8] text-xs font-semibold shadow-xs disabled:opacity-50"
                 >
-                  {saving ? "Saving..." : "Save Outlet"}
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>{saving ? "Saving..." : "Save Outlet"}</span>
                 </button>
               </div>
             </form>
