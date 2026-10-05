@@ -150,6 +150,7 @@ export async function GET() {
           .order("sort_order", { ascending: true });
 
         if (!heroErr && Array.isArray(supaHero) && supaHero.length > 0) {
+          console.log(`[Public Data] Retrieved ${supaHero.length} hero_slides from Supabase. Sample image_path: "${supaHero[0].image_path}" -> "${getPublicMediaUrl(supaHero[0].image_path)}"`);
           heroSlides = supaHero.map((s: any) => {
             const publicUrl = getPublicMediaUrl(s.image_path);
             return {
@@ -167,7 +168,9 @@ export async function GET() {
             };
           });
         }
-      } catch {}
+      } catch (e: any) {
+        console.warn("[Public Data] hero_slides query error:", e.message);
+      }
     } catch (err) {
       console.warn("Notice: Using local store for public data fallback:", err);
     }

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Play, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { InstagramIcon } from "./SocialIcons";
 import { getMediaUrl } from "@/lib/media";
+import SafeImage from "./SafeImage";
 
 export interface ReelSequenceItem {
   id: string;
@@ -293,8 +294,9 @@ export default function InstagramReels() {
                   }`}
                 >
                   {/* Full-bleed Genuine Reel Thumbnail Image */}
-                  <Image
+                  <SafeImage
                     src={getMediaUrl(reel.image)}
+                    fallbackSrc="/images/reel_1.jpg"
                     alt={reel.title || `Sky Laban Instagram Reel ${reel.number}`}
                     fill
                     sizes="(max-width: 640px) 65vw, (max-width: 1024px) 35vw, 285px"

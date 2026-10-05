@@ -6,10 +6,6 @@ import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase/config";
 const SESSION_COOKIE_NAME = "skylaban_admin_session";
 const ALLOWED_ADMIN_ROLES = ["admin", "super admin", "super_admin", "editor", "administrator"];
 const KNOWN_ADMIN_EMAILS = ["brandnix.in@gmail.com"];
-const KNOWN_ADMIN_UUIDS = [
-  "4300f42c-c168-4ce-9254-5fad4c4539a5",
-  "53177535-cbd5-4f02-b7c5-ce9cabc4c6f6",
-];
 
 function getSessionSecret(): string {
   return process.env.ADMIN_SESSION_SECRET || "skylaban-default-session-secret-2026";
@@ -155,10 +151,7 @@ export async function getAdminSession(): Promise<AdminSession | null> {
             .filter(Boolean);
           const allAllowedEmails = [...KNOWN_ADMIN_EMAILS, ...envEmails];
 
-          if (
-            (user.email && allAllowedEmails.includes(user.email.toLowerCase().trim())) ||
-            KNOWN_ADMIN_UUIDS.includes(user.id)
-          ) {
+          if (user.email && allAllowedEmails.includes(user.email.toLowerCase().trim())) {
             isAuthorized = true;
           }
         }

@@ -21,6 +21,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { FounderItem } from "@/lib/db";
+import { uploadSkyLabanMedia } from "@/lib/upload";
 
 export default function AdminFoundersPage() {
   const [founders, setFounders] = useState<FounderItem[]>([]);
@@ -78,38 +79,20 @@ export default function AdminFoundersPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 8 * 1024 * 1024) {
-      setUploadError("Image must be smaller than 8MB");
-      return;
-    }
-
     setUploadError(null);
     setUploadingImage(true);
-    const localObjUrl = URL.createObjectURL(file);
-    setPreviewUrl(localObjUrl);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("folder", "founders");
-
-      const res = await fetch("/api/admin/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        throw new Error("Upload failed on server");
+      const res = await uploadSkyLabanMedia({ file, folder: "founders" });
+      if (!res.success) {
+        throw new Error(res.error || "Upload failed on server");
       }
 
-      const data = await res.json();
-      if (data.url) {
-        setEditingFounder((prev) => ({
-          ...prev,
-          image: data.url,
-        }));
-        setPreviewUrl(data.url);
-      }
+      setEditingFounder((prev) => ({
+        ...prev,
+        image: res.storagePath,
+      }));
+      setPreviewUrl(res.publicUrl);
     } catch (err: any) {
       console.error(err);
       setUploadError(err.message || "Failed to upload image. You can also paste an image URL.");

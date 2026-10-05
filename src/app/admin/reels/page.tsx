@@ -23,6 +23,7 @@ import {
 import { ReelItem } from "@/lib/db";
 import { InstagramIcon } from "@/components/SocialIcons";
 import { getMediaUrl, toStoragePath } from "@/lib/media";
+import { uploadSkyLabanMedia } from "@/lib/upload";
 
 export default function AdminReelsPage() {
   const [reels, setReels] = useState<ReelItem[]>([]);
@@ -81,46 +82,20 @@ export default function AdminReelsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check size (< 8MB)
-    if (file.size > 8 * 1024 * 1024) {
-      setUploadError("Image must be smaller than 8MB");
-      return;
-    }
-
     setUploadError(null);
     setUploadingImage(true);
 
-    // Show instant local preview via object URL
-    const localObjUrl = URL.createObjectURL(file);
-    setPreviewUrl(localObjUrl);
-
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("folder", "reels");
-
-      const res = await fetch("/api/admin/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        throw new Error("Upload failed on server");
+      const res = await uploadSkyLabanMedia({ file, folder: "reels" });
+      if (!res.success) {
+        throw new Error(res.error || "Upload failed on server");
       }
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Upload failed on server");
-      }
-
-      const storagePath = toStoragePath(data.storagePath || data.path || data.url);
-      if (storagePath) {
-        setEditingReel((prev) => ({
-          ...prev,
-          image: storagePath,
-        }));
-        setPreviewUrl(data.publicUrl || data.url || getMediaUrl(storagePath));
-      }
+      setEditingReel((prev) => ({
+        ...prev,
+        image: res.storagePath,
+      }));
+      setPreviewUrl(res.publicUrl);
     } catch (err: any) {
       console.error(err);
       setUploadError(err.message || "Failed to upload image to Supabase Storage.");

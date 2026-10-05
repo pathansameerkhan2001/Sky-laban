@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import crypto from "crypto";
-import { createServerClient } from "@supabase/ssr";
-import { getAdminSession } from "@/lib/auth";
+import { createClient as createSupabaseJsClient } from "@supabase/supabase-js";
+import { getAuthenticatedUserAndToken } from "@/lib/supabase/server";
 import {
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY,
@@ -11,10 +10,6 @@ import {
 
 const ALLOWED_ADMIN_ROLES = ["admin", "super admin", "super_admin", "editor", "administrator"];
 const KNOWN_ADMIN_EMAILS = ["brandnix.in@gmail.com"];
-const KNOWN_ADMIN_UUIDS = [
-  "4300f42c-c168-4ce-9254-5fad4c4539a5",
-  "53177535-cbd5-4f02-b7c5-ce9cabc4c6f6",
-];
 
 const ALLOWED_FOLDERS = ["hero", "products", "reels", "outlets", "branding", "founders"] as const;
 type StorageFolder = typeof ALLOWED_FOLDERS[number];
@@ -29,125 +24,149 @@ const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB limit
 
 export async function POST(req: NextRequest) {
   try {
-    const cookieStore = await cookies();
+    // 1. Authenticate with Supabase Auth using SSR session/cookies
+    const { user, accessToken, supabase } = await getAuthenticatedUserAndToken();
 
-    // 1. Verify current Supabase authenticated session
-    const supabase = createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {}
-        },
-      },
-    });
+    // Safe server-side debugging (NO tokens, passwords, or secrets logged)
+    console.log("[Upload Auth Debug] Authenticated user exists:", Boolean(user));
+    console.log("[Upload Auth Debug] Authenticated user ID:", user?.id || "none");
+    console.log("[Upload Auth Debug] Authenticated user email:", user?.email || "none");
+    console.log("[Upload Auth Debug] Active access token present:", Boolean(accessToken));
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    const fallbackSession = await getAdminSession();
-
-    if (!user && !fallbackSession) {
+    if (!user) {
+      console.warn("[Upload Auth] Rejecting unauthenticated upload request (401)");
       return NextResponse.json(
-        { error: "Please sign in as an administrator before uploading." },
+        { error: "Please sign in to an authorized administrator account before uploading." },
         { status: 401 }
       );
     }
 
-    // 2 & 3. Verify user's ID exists in public.admin_users and role = admin
+    // 2. Create authenticated Supabase client carrying the user's JWT
+    // This guarantees PostgreSQL RLS evaluates auth.uid() = user.id for database & storage checks
+    const authClient = accessToken
+      ? createSupabaseJsClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+          global: {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          },
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+          },
+        })
+      : supabase;
+
+    // 3. Query public.admin_users table dynamically using user.id
     let isAuthorized = false;
+    let adminRecord: { user_id?: string; role?: string; display_name?: string } | null = null;
 
-    if (user) {
-      try {
-        const { data: byUserId } = await supabase
-          .from("admin_users")
-          .select("id, user_id, display_name, role")
-          .or(`user_id.eq.${user.id},id.eq.${user.id}`)
-          .maybeSingle();
+    try {
+      const { data: record, error: adminQueryErr } = await authClient
+        .from("admin_users")
+        .select("id, user_id, display_name, role")
+        .eq("user_id", user.id)
+        .maybeSingle();
 
-        if (byUserId && ALLOWED_ADMIN_ROLES.includes(String(byUserId.role).trim().toLowerCase())) {
-          isAuthorized = true;
-        }
-      } catch (err) {
-        console.warn("[Upload Auth Check] admin_users query notice:", err);
+      if (record && ALLOWED_ADMIN_ROLES.includes(String(record.role).trim().toLowerCase())) {
+        isAuthorized = true;
+        adminRecord = record;
       }
+      if (adminQueryErr) {
+        console.warn("[Upload Auth Check] admin_users query notice:", adminQueryErr.message);
+      }
+    } catch (err) {
+      console.warn("[Upload Auth Check] admin_users lookup error:", err);
+    }
 
-      // Check allowlist fallback and sync to admin_users table so storage RLS succeeds
+    // 4. Verify admin email against authorized allowlist & ensure database record is synced
+    const envEmails = (process.env.ADMIN_ALLOWED_EMAILS || "")
+      .toLowerCase()
+      .split(",")
+      .map((e) => e.trim())
+      .filter(Boolean);
+    const allAllowedEmails = [...KNOWN_ADMIN_EMAILS, ...envEmails];
+    const appRole = String(user.app_metadata?.role || user.user_metadata?.role || "").trim().toLowerCase();
+
+    const isEmailAllowed = Boolean(user.email && allAllowedEmails.includes(user.email.toLowerCase().trim()));
+    const hasAdminAppRole = ALLOWED_ADMIN_ROLES.includes(appRole);
+
+    if (isEmailAllowed || hasAdminAppRole) {
       if (!isAuthorized) {
-        const envEmails = (process.env.ADMIN_ALLOWED_EMAILS || "")
-          .toLowerCase()
-          .split(",")
-          .map((e) => e.trim())
-          .filter(Boolean);
-        const allAllowedEmails = [...KNOWN_ADMIN_EMAILS, ...envEmails];
-        const appRole = String(user.app_metadata?.role || user.user_metadata?.role || "").trim().toLowerCase();
-
-        if (
-          ALLOWED_ADMIN_ROLES.includes(appRole) ||
-          (user.email && allAllowedEmails.includes(user.email.toLowerCase().trim())) ||
-          KNOWN_ADMIN_UUIDS.includes(user.id)
-        ) {
-          isAuthorized = true;
-          try {
-            await supabase.from("admin_users").upsert(
+        // Sync the authenticated user into public.admin_users so Storage RLS helper is_admin() succeeds
+        try {
+          const { data: upsertData, error: upsertErr } = await authClient
+            .from("admin_users")
+            .upsert(
               {
                 user_id: user.id,
-                email: user.email,
                 display_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "Admin",
-                role: "admin",
+                role: "Admin",
               },
               { onConflict: "user_id" }
-            );
-          } catch (upsertErr) {
-            console.warn("[Upload Auth Sync] Notice on admin_users upsert:", upsertErr);
+            )
+            .select()
+            .maybeSingle();
+
+          if (!upsertErr) {
+            isAuthorized = true;
+            adminRecord = upsertData || { user_id: user.id, role: "Admin" };
+            console.log("[Upload Auth Sync] Admin verified and synced in public.admin_users:", user.id);
+          } else {
+            console.warn("[Upload Auth Sync] admin_users upsert warning:", upsertErr.message);
+            // Allow verified admin email to proceed even if table upsert had a constraint notice
+            isAuthorized = true;
           }
+        } catch (e) {
+          console.warn("[Upload Auth Sync] admin_users sync error:", e);
+          isAuthorized = true;
         }
-      }
-    } else if (fallbackSession) {
-      if (ALLOWED_ADMIN_ROLES.includes(String(fallbackSession.role).trim().toLowerCase())) {
-        isAuthorized = true;
       }
     }
 
+    console.log(
+      "[Upload Auth Debug] admin_users lookup result:",
+      adminRecord ? { userId: adminRecord.user_id, role: adminRecord.role } : "not registered"
+    );
+    console.log("[Upload Auth Debug] Admin role authorization result:", isAuthorized);
+
+    // If authenticated user is not an admin, return 403 Forbidden
     if (!isAuthorized) {
+      console.warn(`[Upload Auth] User ${user.email} (${user.id}) is authenticated but not an admin (403)`);
       return NextResponse.json(
-        { error: "Your admin account does not have permission to upload media." },
+        { error: "Your account is not authorized as a Sky Laban admin." },
         { status: 403 }
       );
     }
 
-    // 4. Validate uploaded file
+    // 5. Validate multipart/form-data request and uploaded file
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
     if (!file || typeof file.arrayBuffer !== "function") {
-      return NextResponse.json({ error: "No file provided." }, { status: 400 });
+      return NextResponse.json(
+        { error: "No file was provided for upload." },
+        { status: 400 }
+      );
     }
 
-    // 5. Validate MIME type
+    // 6. Validate MIME type
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
       return NextResponse.json(
-        { error: "Unsupported image format. Allowed formats: JPEG, PNG, WebP, AVIF." },
+        { error: `Unsupported image format (${file.type}). Allowed formats: JPEG, PNG, WebP, AVIF.` },
         { status: 400 }
       );
     }
 
-    // 6. Validate file size
+    // 7. Validate file size (10 MB limit)
     if (file.size > MAX_FILE_SIZE_BYTES) {
       return NextResponse.json(
-        { error: "Image exceeds the 10 MB limit." },
-        { status: 400 }
+        { error: "File exceeds the 10 MB limit." },
+        { status: 413 }
       );
     }
 
-    // Determine target folder: hero, products, reels, outlets, branding, founders
+    // 8. Determine target folder: hero, products, reels, outlets, branding, founders
     let folder: StorageFolder = "hero";
     const rawFolder = String(formData.get("folder") || "hero")
       .trim()
@@ -158,8 +177,8 @@ export async function POST(req: NextRequest) {
       folder = rawFolder as StorageFolder;
     }
 
-    // 7. Generate safe unique filename without leading slash
-    // Example: hero/salankatia-hero-spoon-abc123.jpg
+    // 9. Generate safe unique filename without leading slashes
+    // Example: hero/salankatia-feast-1741234567890-a1b2c3.jpg
     const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
     const rawName = file.name.replace(/\.[^/.]+$/, "").toLowerCase();
     const sanitizedBase =
@@ -171,11 +190,11 @@ export async function POST(req: NextRequest) {
     const cleanFileName = `${sanitizedBase}-${uniqueId}.${ext}`;
     const storagePath = `${folder}/${cleanFileName}`;
 
-    // 8. Upload to bucket: sky-laban-media
+    // 10. Upload to Supabase Storage bucket 'sky-laban-media'
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await authClient.storage
       .from(SUPABASE_MEDIA_BUCKET)
       .upload(storagePath, buffer, {
         contentType: file.type,
@@ -184,32 +203,26 @@ export async function POST(req: NextRequest) {
 
     if (uploadError) {
       console.error(
-        `[Supabase Storage Error] Failed to upload to ${SUPABASE_MEDIA_BUCKET}/${storagePath}:`,
+        `[Supabase Storage Error] Upload to ${SUPABASE_MEDIA_BUCKET}/${storagePath} failed:`,
         uploadError
       );
-      const isPolicyError =
-        uploadError.message.toLowerCase().includes("security") ||
-        uploadError.message.toLowerCase().includes("policy") ||
-        uploadError.message.toLowerCase().includes("permission");
-
+      // Return 500 for actual Storage or infrastructure failures (never convert to 403)
       return NextResponse.json(
-        {
-          error: isPolicyError
-            ? "Your admin account does not have permission to upload to Sky Laban Media Storage."
-            : `Unable to upload image to Sky Laban Media Storage: ${uploadError.message}`,
-        },
-        { status: isPolicyError ? 403 : 400 }
+        { error: `Unable to upload image to Sky Laban Media Storage: ${uploadError.message}` },
+        { status: 500 }
       );
     }
 
-    // 9. Get public URL
-    const { data: publicData } = supabase.storage
+    // 11. Generate public media URL
+    const { data: publicData } = authClient.storage
       .from(SUPABASE_MEDIA_BUCKET)
       .getPublicUrl(storagePath);
 
     const publicUrl = publicData.publicUrl;
 
-    // 10. Return clean JSON response
+    console.log(`[Upload Success] Uploaded: ${storagePath} -> ${publicUrl}`);
+
+    // 12. Return clean JSON response
     return NextResponse.json({
       success: true,
       storagePath,

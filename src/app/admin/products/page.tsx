@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { ProductItem, PRODUCT_CATEGORIES } from "@/data/brandData";
 import { getMediaUrl, toStoragePath } from "@/lib/media";
+import { uploadSkyLabanMedia } from "@/lib/upload";
 
 function AdminProductsContent() {
   const searchParams = useSearchParams();
@@ -75,36 +76,19 @@ function AdminProductsContent() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 8 * 1024 * 1024) {
-      setErrorMsg("Image must be smaller than 8MB");
-      return;
-    }
-
     setErrorMsg("");
     setUploadingImage(true);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("folder", "products");
-
-      const res = await fetch("/api/admin/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Upload failed on server");
+      const res = await uploadSkyLabanMedia({ file, folder: "products" });
+      if (!res.success) {
+        throw new Error(res.error || "Upload failed on server");
       }
 
-      const storagePath = toStoragePath(data.storagePath || data.path || data.url);
-      if (storagePath) {
-        setEditingProduct((prev) => ({
-          ...prev,
-          image: storagePath,
-        }));
-      }
+      setEditingProduct((prev) => ({
+        ...prev,
+        image: res.storagePath,
+      }));
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to upload image to Supabase Storage.");
     } finally {
@@ -118,7 +102,7 @@ function AdminProductsContent() {
       category: "Salankatia",
       description: "",
       tagline: "",
-      image: "/products/salankatia-nutella-lotus.jpg",
+      image: "",
       price: "",
       badge: "Signature",
       isHero: true,

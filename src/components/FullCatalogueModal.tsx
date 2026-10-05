@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Search, Sparkles, Eye, ArrowUpRight, Filter } from "lucide-react";
 import { PRODUCTS_DATA, ProductItem, PRODUCT_CATEGORIES } from "@/data/brandData";
 import { getMediaUrl } from "@/lib/media";
+import SafeImage from "./SafeImage";
 
 interface FullCatalogueModalProps {
   isOpen: boolean;
@@ -157,8 +158,9 @@ export default function FullCatalogueModal({
                         </div>
                       )}
                       <div className="relative w-full h-full flex items-center justify-center">
-                        <Image
+                        <SafeImage
                           src={getMediaUrl(prod.image)}
+                          fallbackSrc="/products/salankatia-nutella-lotus.jpg"
                           alt={prod.name}
                           fill
                           sizes="200px"

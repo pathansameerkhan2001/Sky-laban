@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { OutletItem } from "@/lib/db";
 import { getMediaUrl, toStoragePath } from "@/lib/media";
+import { uploadSkyLabanMedia } from "@/lib/upload";
 
 export default function AdminOutletsPage() {
   const [outlets, setOutlets] = useState<OutletItem[]>([]);
@@ -77,34 +78,19 @@ export default function AdminOutletsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 8 * 1024 * 1024) {
-      setUploadError("Image must be smaller than 8MB");
-      return;
-    }
-
     setUploadError(null);
     setUploadingImage(true);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("folder", "outlets");
-
-      const res = await fetch("/api/admin/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Upload failed on server");
-
-      const storagePath = toStoragePath(data.storagePath || data.path || data.url);
-      if (storagePath) {
-        setEditingOutlet((prev) => ({
-          ...prev,
-          image: storagePath,
-        }));
+      const res = await uploadSkyLabanMedia({ file, folder: "outlets" });
+      if (!res.success) {
+        throw new Error(res.error || "Upload failed on server");
       }
+
+      setEditingOutlet((prev) => ({
+        ...prev,
+        image: res.storagePath,
+      }));
     } catch (err: any) {
       setUploadError(err.message || "Failed uploading outlet image.");
     } finally {

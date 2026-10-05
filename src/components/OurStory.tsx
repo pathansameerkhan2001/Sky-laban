@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Sparkles, MapPin, Store, Heart, CheckCircle2 } from "lucide-react";
 import { getMediaUrl } from "@/lib/media";
+import SafeImage from "./SafeImage";
 
 export default function OurStory() {
   const [content, setContent] = useState({
@@ -55,8 +56,9 @@ export default function OurStory() {
           {/* Visual Side: Actual Sky Laban Shaikpet Outlet Store Image */}
           <div className="lg:col-span-5 relative">
             <div className="relative rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(7,84,201,0.14)] border border-[#DDF5FF] group aspect-[3/4] max-w-md mx-auto bg-slate-900">
-              <Image
+              <SafeImage
                 src={getMediaUrl(content.imageUrl)}
+                fallbackSrc="/images/outlet_shaikpet_store.jpg"
                 alt="Sky Laban Shaikpet First Outlet Store"
                 fill
                 sizes="(max-width: 768px) 100vw, 480px"

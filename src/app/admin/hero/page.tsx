@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { HeroSlideItem } from "@/lib/db";
 import { getPublicMediaUrl, getMediaUrl, toStoragePath } from "@/lib/media";
+import { uploadSkyLabanMedia } from "@/lib/upload";
 
 export default function AdminHeroPage() {
   const [slides, setSlides] = useState<HeroSlideItem[]>([]);
@@ -85,46 +86,21 @@ export default function AdminHeroPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/avif"];
-    if (!allowedTypes.includes(file.type)) {
-      setUploadError("Unsupported image format. Please select JPEG, PNG, WebP, or AVIF.");
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      setUploadError("Image exceeds the 10 MB limit.");
-      return;
-    }
-
     setUploadError(null);
     setUploadingImage(true);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("folder", "hero");
-
-      const res = await fetch("/api/admin/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Unable to upload image to Sky Laban Media Storage.");
+      const res = await uploadSkyLabanMedia({ file, folder: "hero" });
+      if (!res.success) {
+        throw new Error(res.error || "Unable to upload image to Sky Laban Media Storage.");
       }
 
-      const storagePath = data.storagePath || data.path;
-      const publicUrl = data.publicUrl || data.url;
-
-      if (storagePath) {
-        setEditingSlide((prev) => ({
-          ...prev,
-          image: storagePath,
-          desktopImage: storagePath,
-        }));
-        setPreviewUrl(publicUrl || getPublicMediaUrl(storagePath));
-      }
+      setEditingSlide((prev) => ({
+        ...prev,
+        image: res.storagePath,
+        desktopImage: res.storagePath,
+      }));
+      setPreviewUrl(res.publicUrl);
     } catch (err: any) {
       console.error("[Hero Image Upload Error]:", err);
       setUploadError(err.message || "Failed to upload image to Supabase Storage.");

@@ -50,15 +50,8 @@ async function isAuthorizedAdmin(supabase: SupabaseClient, user: User | null): P
     .filter(Boolean);
 
   const allAllowedEmails = ["brandnix.in@gmail.com", ...allowedEmails];
-  const knownAdminUuids = [
-    "4300f42c-c168-4ce-9254-5fad4c4539a5",
-    "53177535-cbd5-4f02-b7c5-ce9cabc4c6f6",
-  ];
 
-  if (
-    (user.email && allAllowedEmails.includes(user.email.toLowerCase().trim())) ||
-    knownAdminUuids.includes(user.id)
-  ) {
+  if (user.email && allAllowedEmails.includes(user.email.toLowerCase().trim())) {
     return true;
   }
 

@@ -18,6 +18,7 @@ import { PRODUCTS_DATA, ProductItem } from "@/data/brandData";
 import ProductDetailModal from "./ProductDetailModal";
 import FullCatalogueModal from "./FullCatalogueModal";
 import { getMediaUrl } from "@/lib/media";
+import SafeImage from "./SafeImage";
 
 const CATEGORIES = [
   "All",
@@ -376,8 +377,9 @@ export default function Products({ selectedCategory, onSelectCategory }: Product
                       )}
 
                       <div className="relative w-full h-full flex items-center justify-center">
-                        <Image
+                        <SafeImage
                           src={getMediaUrl(prod.image || "/products/salankatia-nutella-lotus.jpg")}
+                          fallbackSrc="/products/salankatia-nutella-lotus.jpg"
                           alt={prod.name}
                           fill
                           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1536px) 25vw, 20vw"
@@ -457,8 +459,9 @@ export default function Products({ selectedCategory, onSelectCategory }: Product
                     )}
 
                     <div className="relative w-full h-full flex items-center justify-center">
-                      <Image
+                      <SafeImage
                         src={getMediaUrl(prod.image || "/products/salankatia-nutella-lotus.jpg")}
+                        fallbackSrc="/products/salankatia-nutella-lotus.jpg"
                         alt={prod.name}
                         fill
                         sizes="(max-width: 640px) 210px, 270px"

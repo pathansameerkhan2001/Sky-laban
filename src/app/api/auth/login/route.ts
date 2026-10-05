@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, createChunks, stringToBase64URL } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { createToken, setAdminSessionCookie } from "@/lib/auth";
@@ -7,10 +7,6 @@ import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/lib/supabase/config";
 
 const ALLOWED_ADMIN_ROLES = ["admin", "super admin", "super_admin", "editor", "administrator"];
 const KNOWN_ADMIN_EMAILS = ["brandnix.in@gmail.com"];
-const KNOWN_ADMIN_UUIDS = [
-  "4300f42c-c168-4ce-9254-5fad4c4539a5",
-  "53177535-cbd5-4f02-b7c5-ce9cabc4c6f6",
-];
 
 export async function POST(req: NextRequest) {
   try {
@@ -75,10 +71,10 @@ export async function POST(req: NextRequest) {
 
     // 2. Strict Admin Authorization Check using public.admin_users
     let isAuthorized = false;
-    let role = "admin";
+    let role = "Admin";
     let displayName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Admin";
 
-    // Use authenticated client with the user's JWT to ensure PostgreSQL RLS allows selecting from public.admin_users
+    // Use authenticated client with the user's JWT to ensure PostgreSQL RLS allows querying and writing
     const authHeaders: Record<string, string> = {};
     if (authData.session?.access_token) {
       authHeaders.Authorization = `Bearer ${authData.session.access_token}`;
@@ -105,18 +101,6 @@ export async function POST(req: NextRequest) {
         isAuthorized = true;
         role = byUserId.role || role;
         displayName = byUserId.display_name || displayName;
-      } else {
-        const { data: byId } = await authQueryClient
-          .from("admin_users")
-          .select("id, user_id, display_name, role")
-          .eq("id", user.id)
-          .maybeSingle();
-
-        if (byId && ALLOWED_ADMIN_ROLES.includes(String(byId.role).trim().toLowerCase())) {
-          isAuthorized = true;
-          role = byId.role || role;
-          displayName = byId.display_name || displayName;
-        }
       }
       if (queryErr) {
         console.warn("[Auth] admin_users query warning:", queryErr.message);
@@ -130,10 +114,10 @@ export async function POST(req: NextRequest) {
       const appRole = String(user.app_metadata?.role || user.user_metadata?.role || "").trim().toLowerCase();
       if (ALLOWED_ADMIN_ROLES.includes(appRole)) {
         isAuthorized = true;
-        role = user.app_metadata?.role || user.user_metadata?.role || "admin";
+        role = user.app_metadata?.role || user.user_metadata?.role || "Admin";
       }
 
-      // C. Check known admin email or UUID allowlist
+      // C. Check approved admin email allowlist
       const envEmails = (process.env.ADMIN_ALLOWED_EMAILS || "")
         .toLowerCase()
         .split(",")
@@ -142,15 +126,9 @@ export async function POST(req: NextRequest) {
 
       const allAllowedEmails = [...KNOWN_ADMIN_EMAILS, ...envEmails];
 
-      if (
-        (user.email && allAllowedEmails.includes(user.email.toLowerCase().trim())) ||
-        KNOWN_ADMIN_UUIDS.includes(user.id)
-      ) {
+      if (user.email && allAllowedEmails.includes(user.email.toLowerCase().trim())) {
         isAuthorized = true;
-        role = "admin";
-        if (user.id === "4300f42c-c168-4ce-9254-5fad4c4539a5") {
-          displayName = "Brandnix Admin";
-        }
+        role = "Admin";
       }
     }
 
@@ -160,7 +138,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Access restricted: User account is authenticated in Supabase, but your UUID is not registered with an administrator role in public.admin_users.",
+            "Access restricted: User account is authenticated in Supabase, but is not registered with administrator privileges.",
         },
         { status: 403 }
       );
@@ -168,15 +146,19 @@ export async function POST(req: NextRequest) {
 
     // Ensure the authorized admin user is persisted in public.admin_users for Storage RLS checks
     try {
-      await authQueryClient.from("admin_users").upsert(
+      const { error: upsertErr } = await authQueryClient.from("admin_users").upsert(
         {
           user_id: user.id,
-          email: user.email,
           display_name: displayName,
-          role: "admin",
+          role: "Admin",
         },
         { onConflict: "user_id" }
       );
+      if (upsertErr) {
+        console.warn("[Auth] admin_users upsert error:", upsertErr.message);
+      } else {
+        console.log("[Auth] Successfully verified/synced admin into public.admin_users:", user.id);
+      }
     } catch (e) {
       console.warn("[Auth] admin_users upsert notice:", e);
     }
@@ -192,12 +174,39 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Attach pending Supabase SSR cookies directly to response headers
+    // 1. Explicitly serialize Supabase Auth session into standard SSR cookies
+    if (authData.session) {
+      const storageKey = `sb-${new URL(SUPABASE_URL).hostname.split(".")[0]}-auth-token`;
+      const encoded = "base64-" + stringToBase64URL(JSON.stringify(authData.session));
+      const chunks = createChunks(storageKey, encoded);
+
+      for (const chunk of chunks) {
+        response.cookies.set(chunk.name, chunk.value, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          path: "/",
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+        });
+
+        try {
+          cookieStore.set(chunk.name, chunk.value, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            path: "/",
+            maxAge: 60 * 60 * 24 * 7,
+          });
+        } catch {}
+      }
+    }
+
+    // 2. Attach any pending cookies from createServerClient
     for (const c of pendingCookies) {
       response.cookies.set(c.name, c.value, c.options);
     }
 
-    // Set signed admin session cookie directly on response
+    // 3. Set signed admin session cookie directly on response
     const sessionToken = createToken({
       userId: user.id,
       email: user.email || email,

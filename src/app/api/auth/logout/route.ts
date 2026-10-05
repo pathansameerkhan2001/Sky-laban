@@ -5,9 +5,10 @@ import { clearAdminSessionCookie } from "@/lib/auth";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/lib/supabase/config";
 
 export async function POST() {
-  try {
-    const cookieStore = await cookies();
+  const cookieStore = await cookies();
+  const allCookies = cookieStore.getAll();
 
+  try {
     const supabase = createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       cookies: {
         getAll() {
@@ -31,7 +32,19 @@ export async function POST() {
   }
 
   await clearAdminSessionCookie();
+
   const response = NextResponse.json({ success: true, message: "Logged out successfully" });
   response.cookies.delete("skylaban_admin_session");
+
+  // Also remove all Supabase auth cookie chunks
+  for (const c of allCookies) {
+    if (c.name.includes("-auth-token") || c.name.startsWith("sb-")) {
+      response.cookies.delete(c.name);
+      try {
+        cookieStore.delete(c.name);
+      } catch {}
+    }
+  }
+
   return response;
 }

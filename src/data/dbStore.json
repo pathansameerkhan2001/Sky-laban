@@ -950,44 +950,15 @@
   ],
   "heroSlides": [
     {
-      "id": "table-feast",
-      "desktopImage": "/hero/hero-table-feast-desktop-hd.jpg",
-      "mobileImage": "/hero/hero-table-feast-mobile-hd.jpg",
-      "alt": "Sky Laban Signature Egyptian Desserts Feast - Aseera, Salankatiya, Koushri, Fazea Chocola",
-      "desktopObjectPosition": "object-center",
-      "mobileObjectPosition": "object-center",
+      "title": "New",
+      "subtitle": "New-sky-laban",
+      "image": "hero/sky-laban-dessert-feast-1791183141940-6783f7.jpg",
       "order": 1,
-      "isActive": true
-    },
-    {
-      "id": "cafe-experience",
-      "desktopImage": "/hero/hero-cafe-experience-desktop-hd.jpg",
-      "mobileImage": "/hero/hero-cafe-experience-mobile-hd.jpg",
-      "alt": "Sky Laban Authentic Egyptian Desserts - A Taste Worth Coming Back For",
-      "desktopObjectPosition": "object-center",
-      "mobileObjectPosition": "object-center",
-      "order": 2,
-      "isActive": true
-    },
-    {
-      "id": "gift-presentation",
-      "desktopImage": "/hero/hero-gift-presentation-desktop.jpg",
-      "mobileImage": "/hero/hero-gift-presentation-mobile.jpg",
-      "alt": "Sky Laban Signature Dessert Bowls & Ribboned Blue Gift Box Presentation",
-      "desktopObjectPosition": "object-center",
-      "mobileObjectPosition": "object-center",
-      "order": 3,
-      "isActive": true
-    },
-    {
-      "id": "dessert-collection",
-      "desktopImage": "/hero/hero-dessert-collection-desktop.jpg",
-      "mobileImage": "/hero/hero-dessert-collection-mobile.jpg",
-      "alt": "Sky Laban Complete Artisanal Dessert Collection, Bowls, and Packaging",
-      "desktopObjectPosition": "object-center",
-      "mobileObjectPosition": "object-center",
-      "order": 4,
-      "isActive": true
+      "isActive": true,
+      "tag": "Sky Laban Signature",
+      "desktopImage": "hero/sky-laban-dessert-feast-1791183141940-6783f7.jpg",
+      "image_path": "hero/sky-laban-dessert-feast-1791183141940-6783f7.jpg",
+      "id": "slide-muuw7zs8"
     }
   ],
   "content": {
@@ -1116,7 +1087,7 @@
     "enableOrdering": true,
     "maintenanceMode": false
   },
-  "lastUpdated": "2026-10-03T06:20:03.670Z",
+  "lastUpdated": "2026-10-05T06:56:04.933Z",
   "founders": [
     {
       "id": "founder-akram",
