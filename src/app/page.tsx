@@ -21,7 +21,7 @@ export default function Home() {
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
 
   return (
-    <main className="min-h-screen flex flex-col bg-white overflow-x-hidden w-full selection:bg-[#DDF5FF] selection:text-[#0754C9]">
+    <main className="min-h-screen flex flex-col bg-white overflow-x-clip w-full selection:bg-[#DDF5FF] selection:text-[#0754C9]">
       {/* 0. Website Opening Animation (Plays once per session, elegant reveal) */}
       <OpeningAnimation />
 
